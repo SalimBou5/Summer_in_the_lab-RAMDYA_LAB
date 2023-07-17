@@ -1,0 +1,19 @@
+louise MA4 robotics
+Biorob --> modeling of the salamander locomotion
+mondada (mobots) -->Modelling emergent thermal dyanmics in a robot-bee biohybrid system
+neuromechfly : vision-based tracking
+--->implement locomotion with CPGs and turning by modulation of oscillator amplitudes
+--->reinforcement learning to train tracking
+
+Sibo --> Neuromechfly
+How does the fly walk?
+designing and implementing artificial controllers to drive a simulated fly
+behaviour is more important that aspect
+developing software
+coupled-oscillators (each one control a muscle)
+Artificial Neural Network -> Deep Reinforcement Learning 
+
+higher-order sensory input : 
+	1/vision : antennas obstructing the view in the simulation-->maybe in reality the focal length of the eye makes it invisible for the fly
+	2/olfaction 
+
