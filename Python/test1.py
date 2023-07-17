@@ -42,8 +42,8 @@ ball_detected = False
 
 def sendTarget():
     try:
-        x = inputimeout("Enter a number1: ",timeout = 3.5)
-        y = inputimeout("Enter a number2: ",timeout = 3.5)
+        x = inputimeout("Enter a number1: ",timeout = 5)
+        y = inputimeout("Enter a number2: ",timeout = 5)
     except Exception:
         return
 
@@ -56,12 +56,9 @@ def sendTarget():
             print("CORRECT INPUT") 
             x = convertXtoSteps(x)
             y = convertYtoSteps(y)
-            print(stepsToX(x))
-            print(stepsToY(y))
             time.sleep(0.1)
             data = f"{x},{y}\n"  # Format the data as per the expected delimiter
             arduino.write(data.encode())  # Encode and send the data
-            time.sleep(0.05)
         #data = arduino.readline()
         else:
             print("WRONG INPUT2")
@@ -69,7 +66,6 @@ def sendTarget():
         print("WRONG INPUT")
 
 while True:
-    sendTarget()
     print("ard------")
     print(arduino.in_waiting)
     if arduino.in_waiting >=1 and  arduino.in_waiting<7:
@@ -81,7 +77,8 @@ while True:
         # Process the received boolean values
         print("Received:", dragging)
         arduino.read()
-        time.sleep(0.01)
+        if(dragging):
+            time.sleep(4)
     
     #time.sleep(4)
 
@@ -102,6 +99,8 @@ while True:
     #JE PENSE QU'A UN CERTAIN MOMENT IL FAUT AVOIR UN TABLEAU QUI STOCKE LES BALLES QUI SONT DEJA ARRIVEES
 
     if(not dragging):
+        sendTarget()
+
 
         #ICI DECIDER OU ALLER
 

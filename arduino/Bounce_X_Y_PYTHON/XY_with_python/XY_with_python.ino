@@ -63,7 +63,7 @@ bool dragBack(){
   //Serial.write("DRAG");
   stepperY.setMaxSpeed(400);
   stepperY.setAcceleration(100);
-  Serial.write('1');
+  Serial.write(true,1);
   
   stepperY.move(convertYtoSteps(RAIL_LENGTH));
   
