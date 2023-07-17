@@ -21,10 +21,10 @@
 #define RAYON 1.6
 #define EMPIRICAL 5.02
 
-//#define convertXtoSteps(x) (long)((2*EMPIRICAL*x/(RAYON*PI))*REV)//x in cm
+#define convertXtoSteps(x) (long)((2*EMPIRICAL*x/(RAYON*PI))*REV)//x in cm
 #define convertYtoSteps(y) (long)((EMPIRICAL*y/(RAYON*PI))*REV)//y in cm
 
-//#define stepsToX(s) (float)((RAYON*PI*s)/(2*EMPIRICAL*REV))
+#define stepsToX(s) (float)((RAYON*PI*s)/(2*EMPIRICAL*REV))
 #define stepsToY(s) (float)((RAYON*PI*s)/(EMPIRICAL*REV))
 
 #define DELIMITER ','
@@ -60,27 +60,38 @@ void setup()
   stepperX.run();
 }*/
 bool dragBack(){
-  Serial.println("DRAG");
-  stepperY.setMaxSpeed(200);
+  //Serial.write("DRAG");
+  stepperY.setMaxSpeed(400);
   stepperY.setAcceleration(100);
-  Serial.write(true);
-
+  Serial.write('1');
+  
   stepperY.move(convertYtoSteps(RAIL_LENGTH));
   
   stepperY.runToPosition();
   // Send the bytes over serial
+  delay(100);
   Serial.write(false);
+  //Serial.println("ICI");
   stepperY.setMaxSpeed(8000);
   stepperY.setAcceleration(4000);
 }
 
-
+    long currX = 0;
+    long currY = 0;
+    
 void loop()
 {   
     /*if(abs(x)>5){ stepperX.setMaxSpeed(3000);
       stepperX.setAcceleration(1000);}
     else stepperX.setMaxSpeed(2000);*/
-       
+       if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
+        currX = stepperX.currentPosition();
+        currY = stepperY.currentPosition();
+        //Serial.println(currX);
+        //Serial.println(currY);
+        Serial.write((byte*)&currX, sizeof(long));
+        Serial.write((byte*)&currY, sizeof(long));
+      }
 
     bool tempBool = false;
     while (Serial.available() > 0) {
@@ -95,32 +106,33 @@ void loop()
           y = value;
           tempBool  =false;
         }
-        delay(50);
+      delay(50);
       /*Serial.println(x);
       Serial.println(y);
       Serial.println("----------");*/
     }
  
+      
 
-    long currX = stepperX.currentPosition();
-    long currY = stepperY.currentPosition();
-    if(stepsToY(x)>70){ 
+    if(stepsToX(x)>70){ 
       dragBack();
-      x=stepperX.currentPosition();
-      y=stepperY.currentPosition();
+      x = stepperX.currentPosition();
+      y = stepperY.currentPosition();
     
     }else {
 
-      
       stepperX.moveTo(x);
       stepperY.moveTo(y);
       stepperX.runToPosition();
-      stepperY.runToPosition();
-      /*if(!(stepperX.isRunning()) and !(stepperY.isRunning())and currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
+      /*if(currX != stepperX.currentPosition()){
         currX = stepperX.currentPosition();
-        currY = stepperY.currentPosition();
         Serial.write((byte*)&currX, sizeof(long));
+      }*/
+      stepperY.runToPosition();
+      /*if( currY != stepperY.currentPosition()){
+        currY = stepperY.currentPosition();
         Serial.write((byte*)&currY, sizeof(long));
+        delay(500);
       }*/
     
     }

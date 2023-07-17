@@ -75,14 +75,23 @@ bool dragBack(){
   stepperY.setAcceleration(4000);
 }
 
-
+    long currX = 0;
+    long currY = 0;
 void loop()
 {   
     /*if(abs(x)>5){ stepperX.setMaxSpeed(3000);
       stepperX.setAcceleration(1000);}
     else stepperX.setMaxSpeed(2000);*/
        
-
+    if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
+        currX = stepperX.currentPosition();
+        currY = stepperY.currentPosition();
+        Serial.println(currX);
+        Serial.println(currY);
+        //Serial.write((byte*)&currX, sizeof(long));
+        //Serial.write((byte*)&currY, sizeof(long));
+      }
+    
     bool tempBool = false;
     while (Serial.available() > 0) {
       String data = Serial.readStringUntil(DELIMITER);
@@ -103,8 +112,7 @@ void loop()
     }
  
       
-    long currX = stepperX.currentPosition();
-    long currY = stepperY.currentPosition();
+
     if(x>70){//stepsToY(x)>70){ 
       dragBack();
       x = stepsToX(stepperX.currentPosition());
@@ -116,13 +124,7 @@ void loop()
       stepperY.moveTo(convertYtoSteps(y));
       stepperX.runToPosition();
       stepperY.runToPosition();
-      /*if(!(stepperX.isRunning()) and !(stepperY.isRunning())and currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
-        currX = stepperX.currentPosition();
-        currY = stepperY.currentPosition();
-        Serial.write((byte*)&currX, sizeof(long));
-        Serial.write((byte*)&currY, sizeof(long));
-      }*/
-    
+      
     }
     
     /*if(stepperX.distanceToGo() == 0 && stepperY.distanceToGo() == 0){
