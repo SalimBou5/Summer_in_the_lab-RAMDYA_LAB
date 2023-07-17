@@ -61,16 +61,16 @@ void setup()
 }*/
 bool dragBack(){
   Serial.println("DRAG");
-  stepperY.setMaxSpeed(200);
+  stepperY.setMaxSpeed(400);
   stepperY.setAcceleration(100);
-  Serial.println(true);
+  Serial.write(true);
   
   stepperY.move(convertYtoSteps(RAIL_LENGTH));
   
   stepperY.runToPosition();
   // Send the bytes over serial
   delay(100);
-  Serial.println(false);
+  Serial.write(false);
   stepperY.setMaxSpeed(8000);
   stepperY.setAcceleration(4000);
 }
@@ -107,8 +107,8 @@ void loop()
     long currY = stepperY.currentPosition();
     if(x>70){//stepsToY(x)>70){ 
       dragBack();
-      x = stepperX.currentPosition();
-      y = stepperY.currentPosition();
+      x = stepsToX(stepperX.currentPosition());
+      y = stepsToY(stepperY.currentPosition());
     
     }else {
 
