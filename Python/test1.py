@@ -95,7 +95,7 @@ def sendTarget():
     
 
 while True:
-    
+
     '''print("ard------")
     print(arduino.in_waiting)
     #print(arduino.read())

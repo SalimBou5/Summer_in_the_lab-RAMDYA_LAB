@@ -70,7 +70,7 @@ int dragBack(int escape){
 
   //tells python that we enter in drag mode
   Serial.flush();
-  Serial.write(true);
+  //Serial.write(true);
   Serial.flush();
   //drag on y-axis
   stepperY.move(RAIL_LENGTH);
@@ -84,7 +84,7 @@ int dragBack(int escape){
   stepperX.runToPosition();
   Serial.flush();
   //tells python that we left drag mode
-  Serial.write(false);
+  //Serial.write(false);
   Serial.flush();
   
   //reset speed
