@@ -24,7 +24,11 @@ X_MIN = -30
 X_MAX = 150
 Y_MIN = -20
 Y_MAX = 20
+
+RAIL_LENGTH = 1.2
+RAIL_LENGTH_LAT = 0.2
 #########################################
+
 
 def convertXtoSteps(x):
     return int((2*EMPIRICAL*x/(RAYON*math.pi))*REV)  #x in cm
@@ -100,8 +104,8 @@ while True:
         # Process the received boolean values
         print("Received:", dragging)
         if not dragging:
-            x=x+coef*0.1
-            y=y+1.2
+            x=x+coef*RAIL_LENGTH_LAT
+            y=y+RAIL_LENGTH
             coef=0
         time.sleep(0.5)
 
