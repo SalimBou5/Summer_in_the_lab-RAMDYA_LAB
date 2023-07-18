@@ -51,7 +51,10 @@ def sendTarget():
             d = input("Enter a numberd: ")
             x = input("Enter a number1: ")
             y = input("Enter a number2: ")
+            arduino.flushInput()
+
         except Exception:
+            arduino.flushInput()
             return
     else:
         '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE A GAUCHE'''
@@ -76,31 +79,35 @@ def sendTarget():
                 print("WRONG INPUT2")
         elif(d==1 or d==-1): 
             data = f"{d}\n"
+            arduino.flush()
+            arduino.flushInput()
         else:
             print("WRONG INPUT d")
+            #arduino.flushInput()
             return
         print(data)
-        arduino.flush()
         arduino.write(data.encode())  # Encode and send the data
 
     except ValueError:
+        #arduino.flushInput()
         print("WRONG INPUT")
+    return d
     
 
 while True:
-    '''
-    print("ard------")
+    
+    '''print("ard------")
     print(arduino.in_waiting)
+    #print(arduino.read())
     #while(arduino.in_waiting):
     if arduino.in_waiting >=1 and  arduino.in_waiting<7:
         #data_type = arduino.read().decode()
-        #data = arduino.read()
-        #print(data)
+        data = arduino.read()
+        print(data)
         #if data_type == 'b':  # Boolean value
-        dragging = bool(ord(arduino.read()))
+        dragging = bool(ord(data))#arduino.read()))
         # Process the received boolean values
         print("Received:", dragging)
-        arduino.read()
         if(dragging):
             time.sleep(4)
     
@@ -116,13 +123,31 @@ while True:
 
             print("Received Long Values:", stepsToX(long_value1), stepsToY(long_value2))
             time.sleep(0.5)
-    '''
-             
+    
+    print(arduino.in_waiting)
+    while arduino.in_waiting : 
+        arduino.read()
+        #print(data)
+        #if data_type == 'b':  # Boolean value
+        #dragging = bool(ord(data))#arduino.read()))
+        # Process the received boolean values
+        #print("Received:", dragging)
+        
+    #print("------")'''
+
+    #time.sleep(5)     
     #ICI COMPUTER VISION
     #JE PENSE QU'A UN CERTAIN MOMENT IL FAUT AVOIR UN TABLEAU QUI STOCKE LES BALLES QUI SONT DEJA ARRIVEES
+    #arduino.flushInput()
+    if(not dragging):# and not arduino.in_waiting):
+        print("HALO")
+        dragging = sendTarget()
+        #arduino.flushInput()
+    else:
+        print("ICI")
+        time.sleep(6)
+        dragging=False
 
-    if(not dragging):
-        sendTarget()
 
 
         #ICI DECIDER OU ALLER

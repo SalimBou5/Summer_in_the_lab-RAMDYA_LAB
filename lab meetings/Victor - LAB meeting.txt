@@ -1,0 +1,54 @@
+Victor - LAB meeting
+
+Socaibility among drosophilas --> ease around conspecifics
+
+Safety in numbers
+
+flies are sociable but not at the beginning --> at the start, they are scared
+
+neural dynamics associated with the emergence of sociabilty using drosophila as a model organism
+
+control exxperiments- --> un groupe isolated et un autre grouped, après on fait 3 expériences
+	*2 isolated  
+	*2 grouped
+	*1 isolated + 1 grouped
+
+Results: sociabilty is a learned behaviour --> It's mediated by vision and olfaction 
+	After 2 hours, their "sociability" reaches a plateau
+
+
+Drosohoila simulans are clsoe to melanogaster in evolution (just 2 million years)
+They are very similar, just a little bit smaller
+
+Drosophilia sechelia
+also very silmilar to melanogaster, they need special fruit (noni) to lay eggs and don't like cold temperatures, cannot climb on the arenas
+
+Drosophila mojavensis
+different to melanogaster, bigger, males don't have sex combs --> can't tell if they are male or female before eclosion. After eclosion, the color of the abdomen can tell the sex of the drosophila. They might have a different activity level profile
+
+
+The parents' age leads to chemical changes in the progeny. (change in chemicals in their body (like their smell))
+older parents(4 to 12 days) give active progeny 
+
+Melanogaster + simulans : not getting along as fast as 2 melanogasters
+
+Melanogaster + sechelia : Sechelia moving heratically so difficult to understand --> Not working with sechelia in future experiments
+
+Melanogaster + mojavensis wrigleyi: mojavensis stay at the center far from melanogaster which spend their time at the border, mojavensis are way less active. 
+Melanogaster need to see somtehing moving to consider them.
+
+Summary:
+	Other drosohilids show isolated-like behaviours during the two hours
+	It looks like other drosophilids don't learn to be social at least not as fast as melanogaster
+
+Preventing synaptic transmission from 160 types of neurons:  (Aso, Y., et al., eLife, 2014)
+	olfactory receptor neurons
+	visual neurons
+	mushroom body: memory center
+	lateral horn: innate behaviors center
+	neuropeptides
+	Others: pC1, PNs
+
+The mushroom body modulates its neural circuits for making a fly social
+The lateral horn could play a roll
+

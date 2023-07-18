@@ -17,9 +17,9 @@
 
 
 //#define PI 3.14
-#define REV 1600.0
-#define RAYON 1.6
-#define EMPIRICAL 5.02
+//#define REV 1600.0
+//#define RAYON 1.6
+//#define EMPIRICAL 5.02
 
 //#define convertXtoSteps(x) (long)((2*EMPIRICAL*x/(RAYON*PI))*REV)//x in cm
 //#define convertYtoSteps(y) (long)((EMPIRICAL*y/(RAYON*PI))*REV)//y in cm
@@ -69,8 +69,9 @@ int dragBack(int escape){
   stepperY.setAcceleration(400);
 
   //tells python that we enter in drag mode
-  //Serial.write(true);
-  
+  Serial.flush();
+  Serial.write(true);
+  Serial.flush();
   //drag on y-axis
   stepperY.move(RAIL_LENGTH);
   stepperY.runToPosition();
@@ -81,15 +82,17 @@ int dragBack(int escape){
   //escape on x-axis
   stepperX.move(escape*RAIL_LENGTH_LAT);
   stepperX.runToPosition();
-
+  Serial.flush();
   //tells python that we left drag mode
-  //Serial.write(false);
+  Serial.write(false);
+  Serial.flush();
   
   //reset speed
   stepperY.setMaxSpeed(8000);
   stepperY.setAcceleration(4000);
   stepperX.setMaxSpeed(30000);
   stepperX.setAcceleration(15000);
+  //Serial.println("+++++++++++");
   return 0;
 }
 
@@ -98,18 +101,18 @@ int dragBack(int escape){
     int escape = 0;
 void loop()
 {   
-   /*if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
+   if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
         currX = stepperX.currentPosition();
         currY = stepperY.currentPosition();
         //Serial.println(currX);
         //Serial.println(currY);
         //if(Serial.available()==0){
-          Serial.write((byte*)&currX, sizeof(long));
-          delay(100);
-          Serial.write((byte*)&currY, sizeof(long));
+          //Serial.write((byte*)&currX, sizeof(long));
+          //delay(100);
+          //Serial.write((byte*)&currY, sizeof(long));
         //}
-        delay(100);
-     }*/
+        //delay(100);
+     }
 
     bool tempBool = false;
     /*while (Serial.available() > 0) {
@@ -155,7 +158,7 @@ void loop()
         Serial.println("----------");
     } 
       
-    
+    //escape=random(2)-1;
     if(escape!=0){ 
       escape = dragBack(escape);
       x = stepperX.currentPosition();
@@ -176,6 +179,8 @@ void loop()
       }*/
     
     }
+
+    //Serial.flush();
     
     /*if(stepperX.distanceToGo() == 0 && stepperY.distanceToGo() == 0){
        Serial.println("++++++++++++++");
@@ -184,7 +189,7 @@ void loop()
        //Serial.println((stepperX.currentPosition()));
        //Serial.println((stepperY.currentPosition()));
        Serial.println("++++++++++++++");
-       
+      
     }*/
     /*stepper.moveTo(0);
     stepper.runToPosition();
