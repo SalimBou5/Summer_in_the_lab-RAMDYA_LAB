@@ -63,19 +63,29 @@ void setup()
 }*/
 int dragBack(int escape){
   //Serial.println("DRAG");
+
+  // reduce y-speed
   stepperY.setMaxSpeed(800);
   stepperY.setAcceleration(400);
+
+  //tells python that we enter in drag mode
   //Serial.write(true);
- 
-  stepperY.move(RAIL_LENGTH);
   
+  //drag on y-axis
+  stepperY.move(RAIL_LENGTH);
   stepperY.runToPosition();
-  // Send the bytes over serial
+  
+  // reduce x-speed
   stepperX.setMaxSpeed(800);
   stepperX.setAcceleration(400);  
+  //escape on x-axis
   stepperX.move(escape*RAIL_LENGTH_LAT);
   stepperX.runToPosition();
+
+  //tells python that we left drag mode
   //Serial.write(false);
+  
+  //reset speed
   stepperY.setMaxSpeed(8000);
   stepperY.setAcceleration(4000);
   stepperX.setMaxSpeed(30000);
@@ -93,7 +103,6 @@ void loop()
         currY = stepperY.currentPosition();
         //Serial.println(currX);
         //Serial.println(currY);
-        Serial.flush();
         //if(Serial.available()==0){
           Serial.write((byte*)&currX, sizeof(long));
           delay(100);
@@ -117,16 +126,17 @@ void loop()
           tempBool  =false;
         }
     }*/
+    
     while (Serial.available() > 0) {
         String data = Serial.readStringUntil(DELIMITER);
-        escape = data.toInt();
-        delay(50);
+        escape = data.toFloat();
+        delay(100);
 
         if (data.length() > 0) {
           if (escape == 0) {
             // Read the two variables when the value is 0
             x = Serial.readStringUntil(DELIMITER).toFloat();
-            delay(50);
+            delay(100);
 
             y = Serial.readStringUntil(DELIMITER).toFloat();      
           }
@@ -143,8 +153,7 @@ void loop()
         Serial.println(x);
         Serial.println(y);
         Serial.println("----------");
-    }
- 
+    } 
       
     
     if(escape!=0){ 

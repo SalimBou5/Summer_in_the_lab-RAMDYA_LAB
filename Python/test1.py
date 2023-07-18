@@ -45,9 +45,12 @@ ball_detected = False
 def sendTarget():
     if not ball_detected :
         try:
-            d = inputimeout("Enter a numberd: ",timeout = 5)
-            x = inputimeout("Enter a number1: ",timeout = 5)
-            y = inputimeout("Enter a number2: ",timeout = 5)
+            #d = inputimeout("Enter a numberd: ",timeout = 5)
+            #x = inputimeout("Enter a number1: ",timeout = 5)
+            #y = inputimeout("Enter a number2: ",timeout = 5)
+            d = input("Enter a numberd: ")
+            x = input("Enter a number1: ")
+            y = input("Enter a number2: ")
         except Exception:
             return
     else:
@@ -56,10 +59,9 @@ def sendTarget():
         d=1
         '''else:'''
         d=-1
-        data = f"{d}\n"  # Format the data as per the expected delimiter
-        arduino.write(data.encode())  # Encode and send the data
+        
     try : 
-        d = int(d)
+        d=int(d)
         if(not d):
             x = float(x)
             y = float(y)
@@ -68,7 +70,6 @@ def sendTarget():
                 x = convertXtoSteps(x)
                 y = convertYtoSteps(y)
                 time.sleep(0.1)
-                
                 data = f"{d},{x},{y}\n"  # Format the data as per the expected delimiter                   
                 #data = arduino.readline()
             else:
@@ -78,6 +79,8 @@ def sendTarget():
         else:
             print("WRONG INPUT d")
             return
+        print(data)
+        arduino.flush()
         arduino.write(data.encode())  # Encode and send the data
 
     except ValueError:
