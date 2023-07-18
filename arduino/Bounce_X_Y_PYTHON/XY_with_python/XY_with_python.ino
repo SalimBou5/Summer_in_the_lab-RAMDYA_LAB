@@ -106,12 +106,12 @@ void loop()
         currY = stepperY.currentPosition();
         //Serial.println(currX);
         //Serial.println(currY);
-        //if(Serial.available()==0){
-          //Serial.write((byte*)&currX, sizeof(long));
-          //delay(100);
-          //Serial.write((byte*)&currY, sizeof(long));
-        //}
-        //delay(100);
+        /*if(Serial.available()==0){
+          Serial.write((byte*)&currX, sizeof(long));
+          delay(100);
+          Serial.write((byte*)&currY, sizeof(long));
+        }
+        delay(100);*/
      }
 
     bool tempBool = false;
@@ -132,7 +132,7 @@ void loop()
     
     while (Serial.available() > 0) {
         String data = Serial.readStringUntil(DELIMITER);
-        escape = data.toFloat();
+        escape = data.toInt();
         delay(100);
 
         if (data.length() > 0) {
