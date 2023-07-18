@@ -69,9 +69,9 @@ int dragBack(int escape){
   stepperY.setAcceleration(400);
 
   //tells python that we enter in drag mode
-  Serial.flush();
-  //Serial.write(true);
-  Serial.flush();
+  //Serial.flush();
+  Serial.write(true);
+  //Serial.flush();
   //drag on y-axis
   stepperY.move(RAIL_LENGTH);
   stepperY.runToPosition();
@@ -82,10 +82,10 @@ int dragBack(int escape){
   //escape on x-axis
   stepperX.move(escape*RAIL_LENGTH_LAT);
   stepperX.runToPosition();
-  Serial.flush();
+  //Serial.flush();
   //tells python that we left drag mode
-  //Serial.write(false);
-  Serial.flush();
+  Serial.write(false);
+  //Serial.flush();
   
   //reset speed
   stepperY.setMaxSpeed(8000);
@@ -144,18 +144,18 @@ void loop()
             y = Serial.readStringUntil(DELIMITER).toFloat();      
           }
           else{
-            Serial.flush();
+            //Serial.flush();
             x = stepperX.currentPosition();
             y = stepperY.currentPosition();
           }
         }
         //delay(100);
 
-        
+        /*
         Serial.println(escape);
         Serial.println(x);
         Serial.println(y);
-        Serial.println("----------");
+        Serial.println("----------");*/
     } 
       
     //escape=random(2)-1;
