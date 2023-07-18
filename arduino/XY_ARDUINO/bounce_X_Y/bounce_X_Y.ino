@@ -29,7 +29,9 @@
 
 #define DELIMITER ','
 
-#define RAIL_LENGTH 1.2 //cm //!!!!!!!!!!!!!!!!!!! 
+#define RAIL_LENGTH 1918 //cm //!!!!!!!!!!!!!!!!!!! 
+#define RAIL_LENGTH_LAT 900 //cm //!!!!!!!!!!!!!!!!!!! 
+
     
   float x = 0;
   float y = 0;
@@ -59,7 +61,7 @@ void setup()
   stepperX.moveTo();
   stepperX.run();
 }*/
-bool dragBack(){
+/*bool dragBack(){
   Serial.println("DRAG");
   stepperY.setMaxSpeed(400);
   stepperY.setAcceleration(100);
@@ -73,10 +75,34 @@ bool dragBack(){
   Serial.write(false);
   stepperY.setMaxSpeed(8000);
   stepperY.setAcceleration(4000);
+}*/
+
+int dragBack(int escape){
+  //Serial.println("DRAG");
+  stepperY.setMaxSpeed(800);
+  stepperY.setAcceleration(400);
+  Serial.write(true);
+ 
+  stepperY.move(RAIL_LENGTH);
+  
+  stepperY.runToPosition();
+  // Send the bytes over serial
+  stepperX.setMaxSpeed(800);
+  stepperX.setAcceleration(400);  
+  stepperX.move(escape*RAIL_LENGTH_LAT);
+  stepperX.runToPosition();
+  Serial.write(false);
+  stepperY.setMaxSpeed(8000);
+  stepperY.setAcceleration(4000);
+  stepperX.setMaxSpeed(30000);
+  stepperX.setAcceleration(15000);
+  Serial.println("----------");
+  return 0;
 }
 
     long currX = 0;
     long currY = 0;
+    int escape = 0;
 void loop()
 {   
     /*if(abs(x)>5){ stepperX.setMaxSpeed(3000);
@@ -93,7 +119,7 @@ void loop()
       }
     
     bool tempBool = false;
-    while (Serial.available() > 0) {
+    /*while (Serial.available() > 0) {
       String data = Serial.readStringUntil(DELIMITER);
       float value = data.toFloat();
       if(data.length()>0)
@@ -104,7 +130,20 @@ void loop()
         } else {  
           y = value;
           tempBool  =false;
+        }*/
+      while (Serial.available() > 0) {
+        String data = Serial.readStringUntil(DELIMITER);
+        escape = data.toFloat();
+        delay(50);
+        if (data.length() > 0) {
+          if (escape == 0) {
+            // Read the two variables when the value is 0
+            x = Serial.readStringUntil(DELIMITER).toFloat();
+            delay(50);
+            y = Serial.readStringUntil(DELIMITER).toFloat();      
+          }
         }
+
       delay(50);
       Serial.println(x);
       Serial.println(y);
@@ -113,8 +152,8 @@ void loop()
  
       
 
-    if(x>70){//stepsToY(x)>70){ 
-      dragBack();
+    if(escape!=0){//stepsToY(x)>70){ 
+      escape = dragBack(escape);
       x = stepsToX(stepperX.currentPosition());
       y = stepsToY(stepperY.currentPosition());
     

@@ -7,8 +7,9 @@ from inputimeout import inputimeout
 arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
 x=0
 y=0
+d=0
+
 dragging=False
-RAIL_LENGTH = 1.2 #!//////////!!!
 
 balls = [
     [0,0,1,1], [1.5, 0, 1.5, 1]
@@ -40,34 +41,54 @@ def stepsToY(s):
 ball_detected = False 
 #ball_detected --> true if computer vision detects a ball
 
-def sendTarget():
-    try:
-        x = inputimeout("Enter a number1: ",timeout = 5)
-        y = inputimeout("Enter a number2: ",timeout = 5)
-    except Exception:
-        return
 
-    print(x)
-    print(y)
+def sendTarget():
+    if not ball_detected :
+        try:
+            d = inputimeout("Enter a numberd: ",timeout = 5)
+            x = inputimeout("Enter a number1: ",timeout = 5)
+            y = inputimeout("Enter a number2: ",timeout = 5)
+        except Exception:
+            return
+    else:
+        '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE A GAUCHE'''
+        '''if d :'''
+        d=1
+        '''else:'''
+        d=-1
+        data = f"{d}\n"  # Format the data as per the expected delimiter
+        arduino.write(data.encode())  # Encode and send the data
     try : 
-        x = float(x)
-        y = float(y)
-        if x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX:   #EVIDEMMENT CHANGER-------
-            print("CORRECT INPUT") 
-            x = convertXtoSteps(x)
-            y = convertYtoSteps(y)
-            time.sleep(0.1)
-            data = f"{x},{y}\n"  # Format the data as per the expected delimiter
-            arduino.write(data.encode())  # Encode and send the data
-        #data = arduino.readline()
+        d = int(d)
+        if(not d):
+            x = float(x)
+            y = float(y)
+            if x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX:
+                print("CORRECT INPUT") 
+                x = convertXtoSteps(x)
+                y = convertYtoSteps(y)
+                time.sleep(0.1)
+                
+                data = f"{d},{x},{y}\n"  # Format the data as per the expected delimiter                   
+                #data = arduino.readline()
+            else:
+                print("WRONG INPUT2")
+        elif(d==1 or d==-1): 
+            data = f"{d}\n"
         else:
-            print("WRONG INPUT2")
+            print("WRONG INPUT d")
+            return
+        arduino.write(data.encode())  # Encode and send the data
+
     except ValueError:
         print("WRONG INPUT")
+    
 
 while True:
+    '''
     print("ard------")
     print(arduino.in_waiting)
+    #while(arduino.in_waiting):
     if arduino.in_waiting >=1 and  arduino.in_waiting<7:
         #data_type = arduino.read().decode()
         #data = arduino.read()
@@ -83,7 +104,6 @@ while True:
     #time.sleep(4)
 
     elif arduino.in_waiting >=7 :
-
         #elif data_type == 'l':  # Long values
             long_value1_bytes = arduino.read(4)
             long_value2_bytes = arduino.read(4)
@@ -93,7 +113,7 @@ while True:
 
             print("Received Long Values:", stepsToX(long_value1), stepsToY(long_value2))
             time.sleep(0.5)
-
+    '''
              
     #ICI COMPUTER VISION
     #JE PENSE QU'A UN CERTAIN MOMENT IL FAUT AVOIR UN TABLEAU QUI STOCKE LES BALLES QUI SONT DEJA ARRIVEES
