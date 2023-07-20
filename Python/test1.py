@@ -1,8 +1,9 @@
 import serial
 import time
 import math
-import struct
-from inputimeout import inputimeout
+#from inputimeout import inputimeout
+
+
 
 arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
 x=0
@@ -42,9 +43,14 @@ def stepsToX(s):
 def stepsToY(s):
     return (RAYON*math.pi*s)/(EMPIRICAL*REV)  #cm
 
+
+
+
+
+
+#---------------------SEND TARGET----------------
 ball_detected = False 
 #ball_detected --> true if computer vision detects a ball
-
 
 def sendTarget(x,y):
     if not ball_detected :

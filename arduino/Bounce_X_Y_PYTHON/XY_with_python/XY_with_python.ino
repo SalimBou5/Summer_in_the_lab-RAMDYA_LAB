@@ -31,7 +31,7 @@
 
 #define RAIL_LENGTH 1918//1.2 cm //!!!!!!!!!!!!!!!!!!! 
 
-#define RAIL_LENGTH_LAT 400//1.2 cm //!!!!!!!!!!!!!!!!!!! 
+#define RAIL_LENGTH_LAT 1500//1.2 cm //!!!!!!!!!!!!!!!!!!! 
 
   float x = 0;
   float y = 0;
@@ -65,8 +65,8 @@ int dragBack(int escape){
   //Serial.println("DRAG");
 
   // reduce y-speed
-  stepperY.setMaxSpeed(800);
-  stepperY.setAcceleration(400);
+  stepperY.setMaxSpeed(1000);
+  stepperY.setAcceleration(500);
 
   //tells python that we enter in drag mode
   //Serial.flush();
@@ -77,8 +77,8 @@ int dragBack(int escape){
   stepperY.runToPosition();
   
   // reduce x-speed
-  stepperX.setMaxSpeed(800);
-  stepperX.setAcceleration(400);  
+  stepperX.setMaxSpeed(1500);
+  stepperX.setAcceleration(750);  
   //escape on x-axis
   stepperX.move(escape*RAIL_LENGTH_LAT);
   stepperX.runToPosition();
