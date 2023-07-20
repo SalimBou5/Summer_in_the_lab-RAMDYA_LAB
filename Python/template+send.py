@@ -23,11 +23,22 @@ dragging=False
 
 balls = []
 
-balls_destination = [[65,105],[150,105],[235,105],[325,150],[410,105],[495,105],
-                     [1561,105],[1646,105],[1731,105],[1816,105],[1900,105],[1985,105],
-                     [3055,100],[3140,100],[3225,100],[3310,100],[3395,100],[3480,100]]
+'''
+    ENCORE À AJUSTER
+'''
+BALLS_DESTINATION = [
+                        [[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
+                        [[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
+                        [[3055,190],[3140,190],[3225,190],[3310,190],[3395,190],[3480,190]], #top_right
+                        [[65,1350],[150,1350],[235,1350],[325,1350],[410,1350],[495,1350]], #middle_left
+                        [[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]], #middle_middle
+                        [[3055,1350],[3140,1350],[3225,1350],[3310,1350],[3395,1350],[3480,1350]], #middle_top
+                        [[65,2508],   [150,2508], [235,2508], [325,2508], [410,2508], [495,2508]], #bottom_left
+                        [[1561,2508],[1646,2508],[1731,2508],[1816,2508],[1900,2508],[1985,2508]], #bottom_middle
+                        [[3055,2508],[3140,2508],[3225,2508],[3310,2508],[3395,2508],[3480,2508]] #bottom_right
+                    ]
 
-rest_positions=[]
+rest_positions=[[0,0]]
 
 REV = 1600
 RAYON = 1.6
@@ -69,29 +80,29 @@ PATCH_X_MAX=230
 PATCH_Y_MIN=245
 PATCH_Y_MAX=275
 
-THRESHOLD=10
+THRESHOLD=20
 
-#fig, ax = plt.subplots(1,2,figsize=(10,10))
-#ax[0].imshow(sample,cmap='gray')
-#ax[0].add_patch(Rectangle((patch_x_min, patch_x_max), patch_x_max-patch_x_min, patch_y_max-patch_y_min, edgecolor='b', facecolor='none'));
-#ax[0].set_title('Patch Location',fontsize=15)
+fig, ax = plt.subplots(1,2,figsize=(10,10))
+ax[0].add_patch(Rectangle((PATCH_X_MIN, PATCH_Y_MIN), PATCH_X_MAX-PATCH_X_MIN, PATCH_Y_MAX-PATCH_Y_MIN, edgecolor='b', facecolor='none'));
+ax[0].set_title('Patch Location',fontsize=15)
 #Showing Patch
 sample_div = sample[1300:1650, 1520:2050]
-patch = sample_div[PATCH_X_MIN:PATCH_X_MAX, PATCH_Y_MIN:PATCH_Y_MAX]
+ax[0].imshow(sample_div,cmap='gray')
+patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
 
 balls_ready=[]
-#ax[1].imshow(patch,cmap='gray')
-#ax[1].set_title('Patch',fontsize=15)
-#plt.show()
+ax[1].imshow(patch,cmap='gray')
+ax[1].set_title('Patch',fontsize=15)
+plt.show()
 
 def convertPixelsToCm(x):
     '''
-        To BE IMPLEMENTED
+        To BE CHECKED
     '''
-    return
+    return x*21./3500.
 
-def balls_detection():
-    sample2 = imread('python\image2.jpg')
+def balls_detection(image):
+    sample2 = imread(image)
     fig, ax = plt.subplots(1,2,figsize=(10,10))
     ax[0].imshow(sample2,cmap='gray')
     ax[1].imshow(sample2,cmap='gray')
@@ -100,25 +111,34 @@ def balls_detection():
 
     patch_width, patch_height = patch.shape
 
-    for region in DIVIDE_REGIONS:
-        y_min, y_max, x_min, x_max = region
+    for i in range(len(DIVIDE_REGIONS)):
+
+        y_min, y_max, x_min, x_max = DIVIDE_REGIONS[i]
         sample_div = sample2[x_min:x_max, y_min:y_max]
         sample_mt = match_template(sample_div, patch)
 
-
         for x, y in peak_local_max(sample_mt, threshold_abs=0.76):
+
             rect = plt.Rectangle((y+y_min, x+x_min), patch_height, patch_width, color='r', 
                                     fc='none')
             ax[1].add_patch(rect)
+            
             balls.append([x+x_min+patch_width/2,y+y_min+patch_height/2])
-            x=convertPixelsToCm(x+x_min+patch_width/2)
-            y=convertPixelsToCm(y+y_min+patch_height/2)
-            for dest in balls_destination:
-                if abs(dest[0]-x)<THRESHOLD and abs(dest[1]-y)<THRESHOLD:
-                    balls_ready.append([x,y])
+
+            x=x+x_min+patch_width/2
+            y=y+y_min+patch_height/2
+            for dest in BALLS_DESTINATION[i]:
+                rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
+                               fc='none')
+                ax[1].add_patch(rect)
+                if abs(dest[0]-y)<THRESHOLD and abs(dest[1]-x)<THRESHOLD:
+                    x_cm = convertPixelsToCm(x)
+                    y_cm = convertPixelsToCm(y)
+                    if not [x_cm, y_cm] in balls_ready:
+                        balls_ready.append([x_cm,y_cm])
                     break
 
-    plt.plot()
+    plt.show()
 
 
 
@@ -130,19 +150,41 @@ THRESHOLD_REST = 0.05
 def find_nearest_point(array, XA, YA):
     nearest_point = array[0]
     if len(array)>1:
-        distances = np.sqrt((array[:, 0] - XA) ** 2 + (array[:, 1] - YA) ** 2)
+        distances = []
+        min = np.sqrt((array[0][0] - XA) ** 2 + (array[0][1] - YA) ** 2)
+        nearest_point=array[0]
+        for ar in array:
+            d=np.sqrt((ar[0] - XA) ** 2 + (ar[1] - YA) ** 2)
+            #distances.append(np.sqrt((ar[0] - XA) ** 2 + (ar[1] - YA) ** 2))
+
+            if(min>d):
+                print("HHHAHHAHA")
+
+                min = d
+                nearest_point = ar
+            
+        
+        '''
         nearest_index = distances.argmin()
+
         nearest_point = array[nearest_index]
+        '''
     return nearest_point
 
 def sendTarget(x,y):
     if len(balls_ready) :
         try:
             '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE A GAUCHE'''
-            d = 1
+            '''
+                C'EST FAUX, d doit rester 0 jusqu'à ce qu'on atteigne les x_y
+                --> DONC on a besoin de connaître la position
+            '''
+            d = 0
             #encore à définir d = 1 ou -1
-            x,y = find_nearest_point(balls_ready,x,y)                
+            x,y = find_nearest_point(balls_ready,x,y)  
+            balls_ready.remove([x,y])              
         except Exception:
+            print("ERROR 0")
             return
     else:
         rest_check = False
@@ -154,12 +196,13 @@ def sendTarget(x,y):
             x,y = find_nearest_point(rest_check,x,y)
         rest_check = False
         d = 0
-        
     try : 
         if(not d):
             x = float(x)
             y = float(y)
             if x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX:
+                print(x)
+                print(y)
                 print("CORRECT INPUT") 
                 time.sleep(0.1)
                 data = f"{d},{convertXtoSteps(x)},{convertYtoSteps(y)}\n"  # Format the data as per the expected delimiter                   
@@ -174,11 +217,12 @@ def sendTarget(x,y):
 
     except ValueError:
         print("WRONG INPUT")
+    print(x)
     return d,x,y
     
 coef=0
-while True:
 
+while True:
     #print("ard------")
     #print(arduino.in_waiting)
     #print(arduino.read())
@@ -212,6 +256,7 @@ while True:
     #time.sleep(5)     
     #ICI COMPUTER VISION
     #JE PENSE QU'A UN CERTAIN MOMENT IL FAUT AVOIR UN TABLEAU QUI STOCKE LES BALLES QUI SONT DEJA ARRIVEES
+    balls_detection('python\image2.jpg')
     #arduino.flushInput()
     if(not dragging):# and not arduino.in_waiting):
         coef,x,y =  sendTarget(x,y)

@@ -58,7 +58,6 @@ for region in divide_regions:
     a=[]
 
     y_min, y_max, x_min, x_max = region
-    #print(x_min,x_max, y_min, y_max)
     sample_div = sample2[x_min:x_max, y_min:y_max]
     #fig, ax = plt.subplots(1,2,figsize=(10,10))
     #ax[0].imshow(sample_div,cmap='gray')
