@@ -33,8 +33,8 @@
 
 #define RAIL_LENGTH_LAT 1500//1.2 cm //!!!!!!!!!!!!!!!!!!! 
 
-  float x = 0;
-  float y = 0;
+float x = 0;
+float y = 0;
 
 
 
@@ -71,7 +71,7 @@ int dragBack(int escape){
   //tells python that we enter in drag mode
   //Serial.flush();
   Serial.write(true);
-  //Serial.flush();
+
   //drag on y-axis
   stepperY.move(RAIL_LENGTH);
   stepperY.runToPosition();
@@ -79,10 +79,11 @@ int dragBack(int escape){
   // reduce x-speed
   stepperX.setMaxSpeed(1500);
   stepperX.setAcceleration(750);  
+  
   //escape on x-axis
   stepperX.move(escape*RAIL_LENGTH_LAT);
   stepperX.runToPosition();
-  //Serial.flush();
+  
   //tells python that we left drag mode
   Serial.write(false);
   //Serial.flush();
@@ -101,7 +102,7 @@ int dragBack(int escape){
     int escape = 0;
 void loop()
 {   
-   if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
+   /*if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
         currX = stepperX.currentPosition();
         currY = stepperY.currentPosition();
         //Serial.println(currX);
@@ -111,10 +112,10 @@ void loop()
           delay(100);
           Serial.write((byte*)&currY, sizeof(long));
         }
-        delay(100);*/
-     }
+        delay(100);
+     }*/
 
-    bool tempBool = false;
+    //bool tempBool = false;
     /*while (Serial.available() > 0) {
       String data = Serial.readStringUntil(DELIMITER);
       float value = data.toFloat();
@@ -159,11 +160,11 @@ void loop()
     } 
       
     //escape=random(2)-1;
-    if(escape!=0){ 
+    if(escape==1 || escape ==-1){ 
       escape = dragBack(escape);
       x = stepperX.currentPosition();
       y = stepperY.currentPosition();
-    }else {
+    }else if(escape == 0) {
       stepperX.moveTo(x);
       stepperY.moveTo(y);
       stepperX.runToPosition();

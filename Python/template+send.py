@@ -56,7 +56,7 @@ RAIL_LENGTH_LAT = 0.2
 
 
 def convertXtoSteps(x):
-    return int((2*EMPIRICAL*x/(RAYON*math.pi))*REV)  #x in cm
+    return int((1.92*EMPIRICAL*x/(RAYON*math.pi))*REV)  #x in cm
 
 def convertYtoSteps(y):
     return int(((EMPIRICAL*y/(RAYON*math.pi))*REV))  #y in cm
