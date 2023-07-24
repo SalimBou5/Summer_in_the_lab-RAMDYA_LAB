@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from skimage.feature import match_template
 from skimage.feature import peak_local_max
-
-
+#-------------------------------------------
 
 arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
+
 targetX=0
 targetY=0
 posX=0
@@ -85,6 +85,7 @@ PATCH_Y_MAX=275
 
 THRESHOLD=20
 
+'''
 fig, ax = plt.subplots(1,2,figsize=(10,10))
 ax[0].add_patch(Rectangle((PATCH_X_MIN, PATCH_Y_MIN), PATCH_X_MAX-PATCH_X_MIN, PATCH_Y_MAX-PATCH_Y_MIN, edgecolor='b', facecolor='none'));
 ax[0].set_title('Patch Location',fontsize=15)
@@ -92,11 +93,16 @@ ax[0].set_title('Patch Location',fontsize=15)
 sample_div = sample[1300:1650, 1520:2050]
 ax[0].imshow(sample_div,cmap='gray')
 patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
+'''
+sample_div = sample[1300:1650, 1520:2050]
+patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
+
+#ax[1].imshow(patch,cmap='gray')
+#ax[1].set_title('Patch',fontsize=15)
+#plt.show()
+
 
 balls_ready=[]
-ax[1].imshow(patch,cmap='gray')
-ax[1].set_title('Patch',fontsize=15)
-plt.show()
 
 def convertPixelsToCm(x):
     '''
@@ -175,22 +181,18 @@ def find_nearest_point(array, XA, YA):
     return nearest_point
 
 def closeEnough(x,y):
-    return abs(x-y)<0.5  #CHECK
+    return abs(x-y)<0.05  #CHECK
 
 def sendTarget(x,y,posX,posY):
     x_old,y_old = x,y
+    print("---------------------------------")
     if len(balls_ready) :
         try:
             '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE A GAUCHE'''
-            '''
-                C'EST FAUX, d doit rester 0 jusqu'à ce qu'on atteigne les x_y
-                --> DONC on a besoin de connaître la position
-            '''
+            
             #encore à définir d = 1 ou -1
             #print(balls)
             x,y = find_nearest_point(balls_ready,posX,posY) 
-            print(x)
-            print(posX)
             if closeEnough(x,posX) and closeEnough(y,posY):
                 escape=-1 #À ajuster, 1 ou -1 --> Il faut trouver le bon algorithme
                 balls_ready.remove([x,y])
@@ -214,7 +216,7 @@ def sendTarget(x,y,posX,posY):
         if(not escape):
             x = float(x)
             y = float(y)
-            if(abs(x-x_old)<.001 and abs(y-y_old)<0.001):
+            if(abs(x-x_old)<.01 and abs(y-y_old)<0.01):
                 #print(x)
                 #print(y)
                 return x_old, y_old
@@ -232,6 +234,8 @@ def sendTarget(x,y,posX,posY):
         else:
             print("WRONG INPUT d")
             return x_old,y_old
+        print(x)
+        print(y)
         arduino.write(data.encode())  # Encode and send the data
 
     except ValueError:
@@ -241,12 +245,21 @@ def sendTarget(x,y,posX,posY):
     return x,y
     
 
+targetX=0
+targetY=0
+posX=0
+posY=0
+
+time.sleep(2)
+while(arduino.in_waiting):
+    arduino.read()
+
 while True:
     #print("ard------")
     #print(arduino.in_waiting)
     #print(arduino.read())
     #while(arduino.in_waiting):
-    time.sleep(0.5)
+    #time.sleep(0.5)
     if arduino.in_waiting:
         data = arduino.read()
 
@@ -260,41 +273,40 @@ while True:
                 #x=x+coef*RAIL_LENGTH_LAT
                 #y=y+RAIL_LENGTH
                 #coef=0
-            time.sleep(1)  
+            #time.sleep(0.5)  
         
         elif data == b'F':
             dragging = False#arduino.read()))
             # Process the received boolean values
             print("Received:", dragging)
-            time.sleep(1)
+            #time.sleep(0.5)
             
 
         
         #elif arduino.in_waiting >3 and not dragging:
             #elif data_type == 'l':  # Long values
         elif(data ==b'X'):
-            #data=arduino.read()
-            #if(data==b'X'):
-            time.sleep(0.2)
+                #data=arduino.read()
+                #if(data==b'X'):
 
-            posX_bytes = arduino.read(4)
-            time.sleep(0.2)
-            posX = stepsToX(struct.unpack('l', posX_bytes)[0])
-            #long_value2 = struct.unpack('l', long_value2_bytes)[0]
+                posX_bytes = arduino.read(4)
 
-            print("Received Long Values:", posX)#, stepsToY(long_value2))
-            #time.sleep(5)
-            time.sleep(0.2)
-            data=arduino.read()
-            if(data==b'Y'):
-                posY_bytes = arduino.read(4)
-
-                posY = stepsToY(struct.unpack('l', posY_bytes)[0])
+                posX = stepsToX(struct.unpack('l', posX_bytes)[0])
                 #long_value2 = struct.unpack('l', long_value2_bytes)[0]
 
-                print("Received YYYYYYyyy:", posY)#, stepsToY(long_value2))
+                print("Received Long Values:", posX)#, stepsToY(long_value2))
+                #time.sleep(5)
 
+                data=arduino.read()
+                if(data==b'Y'):
+                    posY_bytes = arduino.read(4)
+    
+                    posY = stepsToY(struct.unpack('l', posY_bytes)[0])
+                    #long_value2 = struct.unpack('l', long_value2_bytes)[0]
+
+                    print("Received YYYYYYyyy:", posY)#, stepsToY(long_value2))
         
+    
     #print("------")'''
 
     #time.sleep(5)     

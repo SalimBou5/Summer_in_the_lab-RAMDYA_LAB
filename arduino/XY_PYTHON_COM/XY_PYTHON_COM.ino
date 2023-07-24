@@ -1,4 +1,4 @@
-// Bounce.pde
+  // Bounce.pde
 // -*- mode: C++ -*-
 //
 // Make a single stepper bounce from one limit to another
@@ -87,6 +87,10 @@ long currY = 0;
 int escape = 0;
 int k = 0;
 
+bool dir = true; //true --> x ; false -->y
+bool tirma = true;
+
+
 void loop()
 {   
     /*if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
@@ -112,6 +116,8 @@ void loop()
         if (data.length() > 0) {
           if (escape == 0) {
             // Read the two variables when the value is 0
+            dir = true;
+            tirma = true;
             x = Serial.readStringUntil(DELIMITER).toFloat();
             delay(100);
 
@@ -125,7 +131,6 @@ void loop()
         }
     } 
 
-    bool dir = true; //true --> x ; false -->y
     
     if(escape==1 || escape ==-1){ 
       escape = dragBack(escape);
@@ -143,8 +148,7 @@ void loop()
       }
     }
 
-  
-    if(k>50){
+    if(k>150){
         long currX1 = stepperX.currentPosition();
         long currY1 = stepperY.currentPosition();
         if(abs(currX - currX1) > 600 || abs(currY - currY1)> 300){
@@ -164,7 +168,8 @@ void loop()
             //delay(100);
           } 
         }
-        else if (abs(currX1-x)<600 and abs(currY1-y)<300){
+        else if (tirma and abs(currX1-x)<150 and abs(currY1-y)<50){
+            tirma = false;
             currX=x;
             currY=y;
             if(Serial.available()==0){
