@@ -186,6 +186,7 @@ def closeEnough(x,y):
 def sendTarget(x,y,posX,posY):
     x_old,y_old = x,y
     print("---------------------------------")
+    
     if len(balls_ready) :
         try:
             '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE A GAUCHE'''
@@ -216,9 +217,10 @@ def sendTarget(x,y,posX,posY):
         if(not escape):
             x = float(x)
             y = float(y)
-            if(abs(x-x_old)<.01 and abs(y-y_old)<0.01):
+            if(abs(x-x_old)<.001 and abs(y-y_old)<0.01):
                 #print(x)
                 #print(y)
+                print("CIAO")
                 return x_old, y_old
             if x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX:
                 #print(x)
@@ -249,6 +251,8 @@ targetX=0
 targetY=0
 posX=0
 posY=0
+
+i=516
 
 time.sleep(2)
 while(arduino.in_waiting):
@@ -281,6 +285,8 @@ while True:
             print("Received:", dragging)
             #time.sleep(0.5)
             
+        elif data==b'R':
+            print("RECU")
 
         
         #elif arduino.in_waiting >3 and not dragging:
@@ -312,7 +318,11 @@ while True:
     #time.sleep(5)     
     #ICI COMPUTER VISION
     #JE PENSE QU'A UN CERTAIN MOMENT IL FAUT AVOIR UN TABLEAU QUI STOCKE LES BALLES QUI SONT DEJA ARRIVEES
-    balls_detection('python\image2.jpg')
+    #image = 'python\image'+str(i)+'.jpg'
+    image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
+    
+    balls_detection(image)
+    i=i+1
     #arduino.flushInput()
     if(not dragging):# and not arduino.in_waiting):
         targetX,targetY =  sendTarget(targetX,targetY,posX,posY)

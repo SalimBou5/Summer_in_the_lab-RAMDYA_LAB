@@ -136,6 +136,8 @@ while True:
             # Process the received boolean values
             print("Received:", dragging)
 
+        elif data==b'R':
+            print("RECU")
             
 
         

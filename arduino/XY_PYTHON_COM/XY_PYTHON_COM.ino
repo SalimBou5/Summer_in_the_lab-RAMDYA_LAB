@@ -128,6 +128,7 @@ void loop()
             //y = stepperY.currentPosition();
           //}
           dataReceived=true;
+          Serial.write("R");
         }
     } 
 
