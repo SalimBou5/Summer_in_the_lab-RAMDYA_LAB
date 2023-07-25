@@ -1,0 +1,15 @@
+Descending neurons convey info from the brain to the VNC
+
+connectome dataset
+Different types of NN:   Random, small world, scale-free
+
+Power-law fit corresponds to scale-free
+
+The drosophilia has a NN which looks like a power-law fit --> scale-free which is really hierarchical
+-->Drosophilia NN is really organized
+
+Louvain community detection allowed to have a good clustering
+
+Excitatory neurons are within the clusters
+Inhibitory neurons are between clusters
+

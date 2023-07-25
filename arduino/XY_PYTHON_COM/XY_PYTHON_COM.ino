@@ -88,7 +88,7 @@ int escape = 0;
 int k = 0;
 
 bool dir = true; //true --> x ; false -->y
-bool tirma = true;
+bool arrived = false;
 
 
 void loop()
@@ -106,7 +106,6 @@ void loop()
         delay(250);
      }*/
 
-     bool dataReceived = false;
      while (Serial.available() > 0) {
         delay(30);
         String data = Serial.readStringUntil(DELIMITER);
@@ -115,19 +114,14 @@ void loop()
 
         if (data.length() > 0) {
           if (escape == 0) {
-            // Read the two variables when the value is 0
-            dir = true;
-            tirma = true;
-            x = Serial.readStringUntil(DELIMITER).toFloat();
-            delay(100);
-
-            y = Serial.readStringUntil(DELIMITER).toFloat();      
+              // Read the two variables when the value is 0
+              dir = true;
+              tirma = false;
+              x = Serial.readStringUntil(DELIMITER).toFloat();
+              delay(100);
+  
+              y = Serial.readStringUntil(DELIMITER).toFloat();      
           }
-          //else{
-            //x = stepperX.currentPosition();
-            //y = stepperY.currentPosition();
-          //}
-          dataReceived=true;
           Serial.write("R");
         }
     } 
