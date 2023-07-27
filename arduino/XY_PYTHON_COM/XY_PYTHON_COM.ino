@@ -143,7 +143,7 @@ void loop()
       }
     }
 
-    if(k>250){
+    if(k>10){
         long currX1 = stepperX.currentPosition();
         long currY1 = stepperY.currentPosition();
         if(abs(currX - currX1) > 600 || abs(currY - currY1)> 300){
@@ -163,13 +163,15 @@ void loop()
             //delay(100);
           //} 
         }
-        else if (!arrived and abs(currX1-x)<10 and abs(currY1-y)<5){
+        else if (!arrived and abs(currX1-x)<300 and abs(currY1-y)<20){
             arrived = true;
             currX=x;
             currY=y;
             //if(Serial.available()==0){
               //Serial.println("+-+-+-+-+-+-");
               //Serial.println(currX);
+              Serial.write("A");
+              //delay(50);
               Serial.write("X");
               Serial.write((byte*)&currX, sizeof(long));
               //delay(500);
@@ -177,7 +179,6 @@ void loop()
               Serial.write("Y");
               Serial.write((byte*)&currY, sizeof(long));
               //delay(100);
-              Serial.write("A");
             //} 
           }
       k=0;

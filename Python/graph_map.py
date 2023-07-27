@@ -10,12 +10,12 @@ graph = nx.Graph()
 # Define positions (physical coordinates) for each node
 positions = {
     # -------colonne1--------
-    1: {'pos': (27, 57), 'col': 1, 'line': 1},
-    2: {'pos': (27, 627), 'col': 1, 'line': 2},
-    3: {'pos': (27, 1219), 'col': 1, 'line': 3},
-    4: {'pos': (27, 1781), 'col': 1, 'line': 4},
-    5: {'pos': (27, 2370), 'col': 1, 'line': 5},
-    6: {'pos': (27, 2927), 'col': 1, 'line': 6},
+    1: {'pos': (30, 57), 'col': 1, 'line': 1},
+    2: {'pos': (30, 627), 'col': 1, 'line': 2},
+    3: {'pos': (30, 1219), 'col': 1, 'line': 3},
+    4: {'pos': (30, 1781), 'col': 1, 'line': 4},
+    5: {'pos': (30, 2370), 'col': 1, 'line': 5},
+    6: {'pos': (30, 2927), 'col': 1, 'line': 6},
     # -------colonne2--------
     7: {'pos': (115, 57), 'col': 2, 'line': 1},
     8: {'pos': (115, 627), 'col': 2, 'line': 2},
@@ -60,12 +60,12 @@ positions = {
     42: {'pos': (555, 2927), 'col': 7, 'line': 6},
     # ************************************************************
     # -------colonne8--------
-    43: {'pos': (1500, 52), 'col':   8, 'line': 1},
-    44: {'pos': (1500, 617), 'col':  8, 'line': 2},
-    45: {'pos': (1500, 1214), 'col': 8, 'line': 3},
-    46: {'pos': (1500, 1775), 'col': 8, 'line': 4},
-    47: {'pos': (1500, 2362), 'col': 8, 'line': 5},
-    48: {'pos': (1500, 2925), 'col': 8, 'line': 6},
+    43: {'pos': (1514, 52), 'col':   8, 'line': 1},
+    44: {'pos': (1514, 617), 'col':  8, 'line': 2},
+    45: {'pos': (1514, 1214), 'col': 8, 'line': 3},
+    46: {'pos': (1514, 1775), 'col': 8, 'line': 4},
+    47: {'pos': (1514, 2362), 'col': 8, 'line': 5},
+    48: {'pos': (1514, 2925), 'col': 8, 'line': 6},
     # -------colonne9--------
     49: {'pos': (1609, 52), 'col':   9, 'line': 1},
     50: {'pos': (1609, 617), 'col':  9, 'line': 2},
@@ -335,7 +335,7 @@ def convertPixelsToCm(x):
     '''
         To BE CHECKED
     '''
-    return x*4./621.
+    return x*4./659.
 
 for node in positions:
     x, y = positions[node]['pos']
@@ -425,7 +425,7 @@ def node_exists_at_position(x, y):
     return 0
 
 # --------------CHECK---------------------------
-def addDynamicNodeGoal(id, x, y):
+def addDynamicNodeGoal(id, x, y, id_source):
     node = node_exists_at_position(x,y)
     if(node):  #SHOULD NEVER BE THE CASE
         return node
@@ -439,12 +439,13 @@ def addDynamicNodeGoal(id, x, y):
         graph.add_node(id, pos=(x, y))
         graph.add_edge(id, closest_node,
                     weight=distances_to_new_node[closest_node])
-        graph.add_edge(id, closest_node+1,
-                    weight=distances_to_new_node[closest_node+1])
-        graph.add_edge(id, closest_node+6,
-                    weight=distances_to_new_node[closest_node+6]*5)
-        graph.add_edge(id, closest_node+7,
-                    weight=distances_to_new_node[closest_node+7]*5)
+        if(closest_node!=id_source):
+            graph.add_edge(id, closest_node+1,
+                        weight=distances_to_new_node[closest_node+1])
+            graph.add_edge(id, closest_node+6,
+                        weight=distances_to_new_node[closest_node+6]*3)
+            graph.add_edge(id, closest_node+7,
+                        weight=distances_to_new_node[closest_node+7]*3)
         return id
 
 def addDynamicNodePos(id, x, y):
@@ -480,46 +481,50 @@ for u, v, data in graph.edges(data=True):
 
 def shortest_path(source,target):
     id_source = addDynamicNodePos(135,source[0],source[1])
-    id_goal = addDynamicNodeGoal(136,target[0],target[1])
+    id_goal = addDynamicNodeGoal(136,target[0],target[1],id_source)
     #print(target[0], target[1])
     # Find the shortest path based on physical distances
+    shortest_path=[]
     shortest_path = nx.shortest_path(graph, id_source, id_goal, weight='weight')
+
     i=1
     cols = False
     lines=False
-
-    while i < len(shortest_path):
-        if not lines and 'col' in graph.nodes[shortest_path[i]] and 'col' in graph.nodes[shortest_path[i-1]]:
-            if graph.nodes[shortest_path[i]]['col'] == graph.nodes[shortest_path[i-1]]['col']:
-                shortest_path.pop(i-1)
-                cols = True
-                i=i-1
-            else:
-                if cols:
-                    if(len(shortest_path)-i>0):
-                        i = i+1
-                        cols = False
-                    
-                
-        if not cols and 'line' in graph.nodes[shortest_path[i]] and 'line' in graph.nodes[shortest_path[i-1]]:
-            if graph.nodes[shortest_path[i]]['line']==graph.nodes[shortest_path[i-1]]['line']:
-
-                    shortest_path.pop(i-1)    
+    time.sleep(0.1)
+    if(shortest_path!=[]):
+        while i < len(shortest_path):
+            if not lines and 'col' in graph.nodes[shortest_path[i]] and 'col' in graph.nodes[shortest_path[i-1]]:
+                if graph.nodes[shortest_path[i]]['col'] == graph.nodes[shortest_path[i-1]]['col']:
+                    shortest_path.pop(i-1)
+                    cols = True
                     i=i-1
-                    lines = True
-            else:
-                if lines:        
-                    if(len(shortest_path)-i>0):
-                        i = i + 1   
-                        lines = False
+                else:
+                    if cols:
+                        if(len(shortest_path)-i>0):
+                            i = i+1
+                            cols = False
+                        
+                    
+            if not cols and 'line' in graph.nodes[shortest_path[i]] and 'line' in graph.nodes[shortest_path[i-1]]:
+                if graph.nodes[shortest_path[i]]['line']==graph.nodes[shortest_path[i-1]]['line']:
 
-        i=i+1
+                        shortest_path.pop(i-1)    
+                        i=i-1
+                        lines = True
+                else:
+                    if lines:        
+                        if(len(shortest_path)-i>0):
+                            i = i + 1   
+                            lines = False
+
+            i=i+1
 
     #remove first element since its node will be removed
     shortest_path.pop(0)
 
     #remove last element since its position is known in the main function and its node will be removed
-    shortest_path.pop(-1)
+    #shortest_path.pop(-1)   
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     if(id_source == 135):
         graph.remove_node(135)
@@ -551,6 +556,7 @@ def getNodePosition(node):
 #nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
 
 #print(shortest_path([1,123],[8,650]))
+#print(getNodePosition(46))
 #plotGraph()
 
 

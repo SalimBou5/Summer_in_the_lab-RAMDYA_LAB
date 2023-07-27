@@ -27,8 +27,8 @@ EMPIRICAL = 5.02
 ########## EVIDEMMENT CHANGER ###########
 X_MIN = -30
 X_MAX = 150
-Y_MIN = -20
-Y_MAX = 20
+Y_MIN = -21
+Y_MAX = 21
 
 RAIL_LENGTH = 1.2
 RAIL_LENGTH_LAT = 0.2
@@ -67,8 +67,8 @@ def sendTarget(x,y):
             escape = 0 #input("Enter a numberd: ")
             if int(escape)== 0:  #Ce truc va disparaâitre quand il n'y aura plus d'input donc 
                             #pour le moment, on peut laisser cette mocheté
-                x = -15#input("Enter a number1: ")
-                y = -0.42#input("Enter a number2: ")
+                x = -6#input("Enter a number1: ")
+                y = -1#input("Enter a number2: ")
 
         except Exception:
             return
