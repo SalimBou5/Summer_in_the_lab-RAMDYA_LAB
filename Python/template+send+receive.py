@@ -24,7 +24,8 @@ escape=0
 
 dragging=False
 
-balls = []
+#List containing all the detected balls --> not useful for the moment
+#balls = []  --> NOT USEFUL FOR THE MOMENT
 
 '''
     ENCORE À AJUSTER
@@ -57,7 +58,7 @@ RAIL_LENGTH = 1.2
 RAIL_LENGTH_LAT = 0.2
 #########################################
 
-
+#----------------UTILS--------------------
 def convertXtoSteps(x):
     return int((1.92*EMPIRICAL*x/(RAYON*math.pi))*REV)  #x in cm
 
@@ -73,48 +74,56 @@ def stepsToY(s):
 def closeEnough(x,y,threshold):
     return abs(x-y)<threshold  #CHECK
 
+def convertPixelsToCm(x):
+    '''
+        To BE CHECKED
+    '''
+    return x*4./661.
 
-#---------------------COMPUTER VISION----------
+#---------------------COMPUTER VISION (Pattern Matching)-------------------------
 sample = imread('python\image0.jpg')
+#Regions to divide the image to 9 parts (The only parts where it is possible to find a ball)
 DIVIDE_REGIONS = [[25,550,130,450],  [1520,2050,130,450],[3020,3520,130,450],
                   [25,550,1300,1650],[1520,2050,1300,1650] , [3020,3520,1300,1650],
                   [25,550,2420,2820],[1520,2050,2420,2820], [3020,3520,2420,2820]]
 
+#The region from where the patter to be matched is taken
 PATCH_X_MIN=200
 PATCH_X_MAX=230
 PATCH_Y_MIN=245
 PATCH_Y_MAX=275
 
 
+#Patch creation taken from the middle region to match the size
+sample_div = sample[1300:1650, 1520:2050]
+patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
+
+#If needed, code to visualize the patch
 '''
 fig, ax = plt.subplots(1,2,figsize=(10,10))
 ax[0].add_patch(Rectangle((PATCH_X_MIN, PATCH_Y_MIN), PATCH_X_MAX-PATCH_X_MIN, PATCH_Y_MAX-PATCH_Y_MIN, edgecolor='b', facecolor='none'));
 ax[0].set_title('Patch Location',fontsize=15)
 #Showing Patch
-sample_div = sample[1300:1650, 1520:2050]
 ax[0].imshow(sample_div,cmap='gray')
 patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
+ax[1].imshow(patch,cmap='gray')
+ax[1].set_title('Patch',fontsize=15)
+plt.show()
 '''
-sample_div = sample[1300:1650, 1520:2050]
-patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
 
-#ax[1].imshow(patch,cmap='gray')
-#ax[1].set_title('Patch',fontsize=15)
-#plt.show()
-
-THRESHOLD_DETECTION = 20
-
+#To be adjusted 
+#Threshold to detect if a ball has reached a ball_destination
+THRESHOLD_DETECTION_READY = 20
 
 balls_ready=[]
 
-def convertPixelsToCm(x):
-    '''
-        To BE CHECKED
-    '''
-    return x*21./3500.
 
+#Function to read an image and detect the balls that reached a destination
 def balls_detection(image):
+    #Read new image
     sample2 = imread(image)
+
+    #plot new image
     '''
     fig, ax = plt.subplots(1,2,figsize=(10,10))
     ax[0].imshow(sample2,cmap='gray')
@@ -125,101 +134,111 @@ def balls_detection(image):
 
     patch_width, patch_height = patch.shape
 
+    #Do pattern matching for each of the divided regions
     for i in range(len(DIVIDE_REGIONS)):
-
         y_min, y_max, x_min, x_max = DIVIDE_REGIONS[i]
         sample_div = sample2[x_min:x_max, y_min:y_max]
         sample_mt = match_template(sample_div, patch)
 
         for x, y in peak_local_max(sample_mt, threshold_abs=0.76):
-
+            #Add the detected rectangles to the image
+            '''
             rect = plt.Rectangle((y+y_min, x+x_min), patch_height, patch_width, color='r', 
                                     fc='none')
             #ax[1].add_patch(rect)
-            
-            balls.append([x+x_min+patch_width/2,y+y_min+patch_height/2])
+            '''
 
-            x=x+x_min+patch_width/2
-            y=y+y_min+patch_height/2
+            #List containing all of the detected balls 
+            #balls.append([x+x_min+patch_width/2,y+y_min+patch_height/2])
+
+            x = x + x_min + patch_width / 2
+            y = y + y_min + patch_height / 2
+
+            #Check if a ball reached a destination
             for dest in BALLS_DESTINATION[i]:
-                #rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
-                               #fc='none')
-                #ax[1].add_patch(rect)
-                if closeEnough(dest[0],y)<THRESHOLD_DETECTION and closeEnough(dest[1],x)<THRESHOLD_DETECTION:
+                #If a ball reached a destination, append the list balls_ready
+                if closeEnough(dest[0],y,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], x,THRESHOLD_DETECTION_READY):
                     x_cm = convertPixelsToCm(x)
                     y_cm = convertPixelsToCm(y)
                     if not [x_cm, y_cm] in balls_ready:
                         balls_ready.append([x_cm,y_cm])
                     break
-
+    
+                #Add the detected rectangles that are matching a destination to the image
+                '''
+                rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
+                               fc='none')
+                ax[1].add_patch(rect)
+                '''
+                
     #plt.show()
 
 
 
-#---------------------SEND TARGET----------------
-ball_detected = False 
-#ball_detected --> true if computer vision detects a ball
+#-------------------------SEND TARGET----------------------------
 THRESHOLD_REST = 0.05
 THRESHOLD_MAGNET_ARRIVED = 0.05
+THRESHOLD_SAME_GOAL = 0.01
 
 def find_nearest_point(array, XA, YA):
     nearest_point = array[0]
     if len(array)>1:
-        distances = []
         min = np.sqrt((array[0][0] - XA) ** 2 + (array[0][1] - YA) ** 2)
         nearest_point=array[0]
         for ar in array:
             d=np.sqrt((ar[0] - XA) ** 2 + (ar[1] - YA) ** 2)
-            #distances.append(np.sqrt((ar[0] - XA) ** 2 + (ar[1] - YA) ** 2))
-
             if(min>d):
                 min = d
                 nearest_point = ar
-            
-        
-        '''
-        nearest_index = distances.argmin()
-
-        nearest_point = array[nearest_index]
-        '''
     return nearest_point
 
 def sendTarget(x,y,posX,posY):
     x_old,y_old = x,y
     print("---------------------------------")
     
+    #*********************INTERPRETATION OF COMPUTER VISION*******************
     if len(balls_ready) :
         try:
-            '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE A GAUCHE'''
-            
-            #encore à définir d = 1 ou -1
-            #print(balls)
+            '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE / À DROITE'''
+                    #encore à définir d = 1 ou -1
+
+            #Determine the closest ball_ready to the magnet --> Goal
             x,y = find_nearest_point(balls_ready,posX,posY) 
+            
+            #If the goal is close enough to the magnet, then trigger drag_back 
+            # and remove the ball from the list balls_ready 
             if closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
                 escape=-1 #À ajuster, 1 ou -1 --> Il faut trouver le bon algorithme
                 balls_ready.remove([x,y])
-                print("CLSOE")
+                print("CLOSE")
+
+            #If the magnet is far from the ball, allow it to move towards it
             else: 
                 escape = 0
+        
         except Exception:
             print("ERROR 0")
             return
+    
+    #If no ball reached a desination, go to rest
     else:
         rest_check = False
         if(posX in REST_X):
             return  x_old,y_old
         else :
-            x,y = find_nearest_point(rest_check,posX,posY)
-        rest_check = False
-        escape = 0
+            #x,y = find_nearest_point(rest_check,posX,posY)
+            rest_check = False
+            escape = 0
+
+
+    #********************GOAL ANALYSIS AND MOTORS CONTROL**********************
     try : 
+        #if allowed to move
         if(not escape):
-            x = float(x)
-            y = float(y)
-            if(abs(x-x_old)<.001 and abs(y-y_old)<0.01):
-                #print(x)
-                #print(y)
-                print("CIAO")
+            #x = float(x)
+            #y = float(y)
+
+            if closeEnough(x,x_old,THRESHOLD_SAME_GOAL) and closeEnough(y,y_old,THRESHOLD_SAME_GOAL):
                 return x_old, y_old
             if x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX:
                 #print(x)

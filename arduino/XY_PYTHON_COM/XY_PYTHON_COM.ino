@@ -116,7 +116,7 @@ void loop()
           if (escape == 0) {
               // Read the two variables when the value is 0
               dir = true;
-              tirma = false;
+              arrived = false;
               x = Serial.readStringUntil(DELIMITER).toFloat();
               delay(100);
   
@@ -143,7 +143,7 @@ void loop()
       }
     }
 
-    if(k>150){
+    if(k>250){
         long currX1 = stepperX.currentPosition();
         long currY1 = stepperY.currentPosition();
         if(abs(currX - currX1) > 600 || abs(currY - currY1)> 300){
@@ -151,7 +151,7 @@ void loop()
           currY = currY1;
           //Serial.println(currX);
           //Serial.println(currY);
-          if(Serial.available()==0){
+          //if(Serial.available()==0){
             //Serial.println("+-+-+-+-+-+-");
             //Serial.println(currX);
             Serial.write("X");
@@ -161,13 +161,13 @@ void loop()
             Serial.write("Y");
             Serial.write((byte*)&currY, sizeof(long));
             //delay(100);
-          } 
+          //} 
         }
-        else if (tirma and abs(currX1-x)<150 and abs(currY1-y)<50){
-            tirma = false;
+        else if (!arrived and abs(currX1-x)<10 and abs(currY1-y)<5){
+            arrived = true;
             currX=x;
             currY=y;
-            if(Serial.available()==0){
+            //if(Serial.available()==0){
               //Serial.println("+-+-+-+-+-+-");
               //Serial.println(currX);
               Serial.write("X");
@@ -177,7 +177,8 @@ void loop()
               Serial.write("Y");
               Serial.write((byte*)&currY, sizeof(long));
               //delay(100);
-            } 
+              Serial.write("A");
+            //} 
           }
       k=0;
     }else        k++;

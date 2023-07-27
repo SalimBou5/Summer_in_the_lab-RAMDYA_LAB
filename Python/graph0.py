@@ -295,6 +295,7 @@ print(time.time()-t0)
 print("Shortest path based on physical distances:", shortest_path)
 
 
+
 # Visualize the graph with node positions
 pos = nx.get_node_attributes(graph, 'pos')
 nx.draw(graph, pos, with_labels=True, node_size=500, font_size=12)

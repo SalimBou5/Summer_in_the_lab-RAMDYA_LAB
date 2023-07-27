@@ -41,7 +41,7 @@ patch = sample5[patch_y_min:patch_y_max, patch_x_min:patch_x_max]
 #patch = sample[patch_x_min:patch_x_max, patch_y_min:patch_y_max]
 
 
-sample2 = imread('python\image501.jpg')
+sample2 = imread('magnets_2\image528.jpg')
 
 #fig, ax = plt.subplots(1,2,figsize=(10,10))
 #ax[0].imshow(sample2,cmap='gray')
