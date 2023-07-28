@@ -167,6 +167,237 @@ positions = {
     131: {'pos': (2516, 1775), 'col':"r2", 'line': 4},
     132: {'pos': (2516, 2927), 'col':"r2", 'line': 6},
 }
+
+
+def convertPixelsToCm(x):
+    '''
+        To BE CHECKED
+    '''
+    return x*4./659.
+
+for node in positions:
+    x, y = positions[node]['pos']
+    positions[node]['pos'] = (convertPixelsToCm(x), convertPixelsToCm(y))
+
+# Add nodes with positions to the graph
+#graph.add_nodes_from(positions)
+graph.add_nodes_from((node_id, attrs) for node_id, attrs in positions.items())
+
+# Set the node positions as attributes in the graph
+#nx.set_node_attributes(graph, positions)
+
+# Calculate the Euclidean distance between two nodes in the real world
+
+
+def distance(node1, node2):
+    x1, y1 = positions[node1]['pos']
+    x2, y2 = positions[node2]['pos']
+    return ((x2 - x1)**2 + (y2 - y1)**2) ** 0.5
+
+
+def addEdge(node1, node2, coeff=1):
+    graph.add_edge(node1, node2, weight=distance(node1, node2)*coeff)
+
+
+def linkCol(nodeStart, coeff=1):
+    addEdge(nodeStart+1,nodeStart+2)
+    addEdge(nodeStart+3,nodeStart+4)
+    for i in range(0,5,2):
+        addEdge(nodeStart+i, nodeStart+i+1, coeff)
+
+def linkLine(nodeStart, coeff=1):
+    for i in range(20):  # POUR LE MOMENT
+        addEdge(nodeStart+i*6, nodeStart+(i+1)*6, coeff)
+
+def linkBlockCols(start):
+    # ------colonne1------
+    linkCol(start, 1)
+
+    # ------colonne2-->6------
+    for i in range(1, 6):
+        linkCol(start+6*i, 2)
+
+    # ------colonne7------
+    linkCol(start+6*6, 1)
+
+def linkRest(rest, start):
+    addEdge(rest, start)
+    addEdge(rest, start+6)
+
+# Add edges to the graph with physical distances as edge weights
+
+# ------Link Cols------
+linkBlockCols(1)
+linkBlockCols(43)
+linkBlockCols(85)
+
+# ------Line1---------
+linkLine(1, 1.6)
+# ------Line2---------
+linkLine(2, 1.5)
+# ------Line3---------
+linkLine(3, 1.55)
+# ------Line4---------
+linkLine(4, 1.4)
+# ------Line5---------
+linkLine(5, 1.4)
+# ------Line6---------
+linkLine(6)
+
+# -------LinkRest------
+linkRest(127, 38)
+linkRest(128, 40)
+linkRest(129, 42)
+linkRest(130, 80)
+linkRest(131, 82)
+linkRest(132, 84)
+addEdge(127, 128)
+addEdge(128, 129)
+addEdge(130, 131)
+addEdge(131, 132)
+
+def node_exists_at_position(x, y):
+    for node, data in graph.nodes(data=True):
+        if 'pos' in data and abs(data['pos'][0]-x)<0.05 and abs(data['pos'][1])-y<0.05:
+            return node
+    return 0
+
+# --------------CHECK---------------------------
+def addDynamicNodeGoal(id, x, y, id_source):
+    node = node_exists_at_position(x,y)
+    if(node):  #SHOULD NEVER BE THE CASE
+        return node
+    else :
+        distances_to_new_node = {node: ((x - data['pos'][0])**2 + (
+            y - data['pos'][1])**2)**0.5 for node, data in graph.nodes(data=True)}
+        
+        #IL FAUDRAIT VERIFIER SI LE NOEUD QU'ON AJOUTE N'EST PAS DÉJÀ UN NOEUD
+        
+        closest_node = min(distances_to_new_node, key=distances_to_new_node.get)
+        graph.add_node(id, pos=(x, y))
+        graph.add_edge(id, closest_node,
+                    weight=distances_to_new_node[closest_node])
+        if(closest_node!=id_source):
+            graph.add_edge(id, closest_node+1,
+                        weight=distances_to_new_node[closest_node+1])
+            graph.add_edge(id, closest_node+6,
+                        weight=distances_to_new_node[closest_node+6]*3)
+            graph.add_edge(id, closest_node+7,
+                        weight=distances_to_new_node[closest_node+7]*3)
+        return id
+
+def addDynamicNodePos(id, x, y):
+    node = node_exists_at_position(x,y)
+    if(node):
+        return node
+    distances_to_new_node = {node: ((x - data['pos'][0])**2 + (
+        y - data['pos'][1])**2)**0.5 for node, data in graph.nodes(data=True)}
+
+    #IL FAUDRAIT VERIFIER SI LE NOEUD QU'ON AJOUTE N'EST PAS DÉJÀ UN NOEUD
+
+    closest_node = min(distances_to_new_node, key=distances_to_new_node.get)
+    # distances_to_new_node.remove(closest_node)
+    closest_node1 = min(distances_to_new_node, key=distances_to_new_node.get)
+    graph.add_node(id, pos=(x, y))
+    graph.add_edge(id, closest_node,
+                   weight=distances_to_new_node[closest_node])
+    graph.add_edge(id, closest_node1,
+                   weight=distances_to_new_node[closest_node1])
+    return id
+
+t0 = time.time()
+# Create a subgraph with only visible edges
+'''
+subgraph = graph.copy()
+for u, v, data in graph.edges(data=True):
+    if 'hidden' in data and data['hidden']:
+        subgraph.remove_edge(u, v)
+'''
+# addDynamicNodePos(300, 160,2902)
+# addDynamicNodeGoal(301, 251,2515)
+
+
+def shortest_path(source,target):
+    id_source = addDynamicNodePos(135,source[0],source[1])
+    id_goal = addDynamicNodeGoal(136,target[0],target[1],id_source)
+
+    # Find the shortest path based on physical distances
+    shortest_path = nx.shortest_path(graph, id_source, id_goal, weight='weight')
+
+    i=1
+    cols = False
+    lines=False
+    time.sleep(0.1)  #CHECK IF NEEDED
+    
+    if(shortest_path!=[]):
+        while i < len(shortest_path):
+            if not lines and 'col' in graph.nodes[shortest_path[i]] and 'col' in graph.nodes[shortest_path[i-1]]:
+                if graph.nodes[shortest_path[i]]['col'] == graph.nodes[shortest_path[i-1]]['col']:
+                    shortest_path.pop(i-1)
+                    cols = True
+                    i=i-1
+                else:
+                    if cols:
+                        if(len(shortest_path)-i>0):
+                            i = i+1
+                            cols = False
+                        
+                    
+            if not cols and 'line' in graph.nodes[shortest_path[i]] and 'line' in graph.nodes[shortest_path[i-1]]:
+                if graph.nodes[shortest_path[i]]['line']==graph.nodes[shortest_path[i-1]]['line']:
+
+                        shortest_path.pop(i-1)    
+                        i=i-1
+                        lines = True
+                else:
+                    if lines:        
+                        if(len(shortest_path)-i>0):
+                            i = i + 1   
+                            lines = False
+
+            i=i+1
+
+    #remove first element since its node will be removed
+    shortest_path.pop(0)
+
+    #remove last element since its position is known in the main function and its node will be removed
+    #shortest_path.pop(-1)   
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    if(id_source == 135):
+        graph.remove_node(135)
+    if(id_goal == 136):
+        graph.remove_node(136)
+
+    # graph.remove_node(300)
+    #print(time.time()-t0)
+    print("Shortest path based on physical distances:", shortest_path)
+
+    return shortest_path
+
+
+# Visualize the graph with node positions
+def plotGraph():
+    pos = nx.get_node_attributes(graph, 'pos')
+    nx.draw(graph, pos, with_labels=True, node_size=500, font_size=12)
+    #edge_labels = nx.get_edge_attributes(graph, 'weight')
+    #nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
+
+    plt.show()
+
+def getNodePosition(node):
+    return graph.nodes[node]['pos']
+    #return nx.get_node_attributes(graph, 'pos')[node]
+# You can also draw edges with attributes (e.g., weights)
+#edge_labels = nx.get_edge_attributes(graph, 'weight')
+#nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
+
+#print(shortest_path([1,123],[8,650]))
+#print(getNodePosition(46))
+#plotGraph()
+
+
+
 '''
 ---------------In this dico, there are the exact positions in pixels 
 positions = {
@@ -329,235 +560,4 @@ positions = {
     132: {'pos': (2516, 2972), 'col':"r2", 'line': 6},
 }
 '''
-
-
-def convertPixelsToCm(x):
-    '''
-        To BE CHECKED
-    '''
-    return x*4./659.
-
-for node in positions:
-    x, y = positions[node]['pos']
-    positions[node]['pos'] = (convertPixelsToCm(x), convertPixelsToCm(y))
-
-# Add nodes with positions to the graph
-#graph.add_nodes_from(positions)
-graph.add_nodes_from((node_id, attrs) for node_id, attrs in positions.items())
-
-# Set the node positions as attributes in the graph
-#nx.set_node_attributes(graph, positions)
-
-# Calculate the Euclidean distance between two nodes in the real world
-
-
-def distance(node1, node2):
-    x1, y1 = positions[node1]['pos']
-    x2, y2 = positions[node2]['pos']
-    return ((x2 - x1)**2 + (y2 - y1)**2) ** 0.5
-
-
-def addEdge(node1, node2, coeff=1):
-    graph.add_edge(node1, node2, weight=distance(node1, node2)*coeff)
-
-
-def linkCol(nodeStart, coeff=1):
-    addEdge(nodeStart+1,nodeStart+2)
-    addEdge(nodeStart+3,nodeStart+4)
-    for i in range(0,5,2):
-        addEdge(nodeStart+i, nodeStart+i+1, coeff)
-
-def linkLine(nodeStart, coeff=1):
-    for i in range(20):  # POUR LE MOMENT
-        addEdge(nodeStart+i*6, nodeStart+(i+1)*6, coeff)
-
-def linkBlockCols(start):
-    # ------colonne1------
-    linkCol(start, 1)
-
-    # ------colonne2-->6------
-    for i in range(1, 6):
-        linkCol(start+6*i, 2)
-
-    # ------colonne7------
-    linkCol(start+6*6, 1)
-
-def linkRest(rest, start):
-    addEdge(rest, start)
-    addEdge(rest, start+6)
-
-# Add edges to the graph with physical distances as edge weights
-
-# ------Link Cols------
-linkBlockCols(1)
-linkBlockCols(43)
-linkBlockCols(85)
-
-# ------Line1---------
-linkLine(1, 1.6)
-# ------Line2---------
-linkLine(2, 1.5)
-# ------Line3---------
-linkLine(3, 1.55)
-# ------Line4---------
-linkLine(4, 1.4)
-# ------Line5---------
-linkLine(5, 1.4)
-# ------Line6---------
-linkLine(6)
-
-# -------LinkRest------
-linkRest(127, 38)
-linkRest(128, 40)
-linkRest(129, 42)
-linkRest(130, 80)
-linkRest(131, 82)
-linkRest(132, 84)
-addEdge(127, 128)
-addEdge(128, 129)
-addEdge(130, 131)
-addEdge(131, 132)
-
-def node_exists_at_position(x, y):
-    for node, data in graph.nodes(data=True):
-        if 'pos' in data and abs(data['pos'][0]-x)<0.05 and abs(data['pos'][1])-y<0.05:
-            return node
-    return 0
-
-# --------------CHECK---------------------------
-def addDynamicNodeGoal(id, x, y, id_source):
-    node = node_exists_at_position(x,y)
-    if(node):  #SHOULD NEVER BE THE CASE
-        return node
-    else :
-        distances_to_new_node = {node: ((x - data['pos'][0])**2 + (
-            y - data['pos'][1])**2)**0.5 for node, data in graph.nodes(data=True)}
-        
-        #IL FAUDRAIT VERIFIER SI LE NOEUD QU'ON AJOUTE N'EST PAS DÉJÀ UN NOEUD
-        
-        closest_node = min(distances_to_new_node, key=distances_to_new_node.get)
-        graph.add_node(id, pos=(x, y))
-        graph.add_edge(id, closest_node,
-                    weight=distances_to_new_node[closest_node])
-        if(closest_node!=id_source):
-            graph.add_edge(id, closest_node+1,
-                        weight=distances_to_new_node[closest_node+1])
-            graph.add_edge(id, closest_node+6,
-                        weight=distances_to_new_node[closest_node+6]*3)
-            graph.add_edge(id, closest_node+7,
-                        weight=distances_to_new_node[closest_node+7]*3)
-        return id
-
-def addDynamicNodePos(id, x, y):
-    node = node_exists_at_position(x,y)
-    if(node):
-        return node
-    distances_to_new_node = {node: ((x - data['pos'][0])**2 + (
-        y - data['pos'][1])**2)**0.5 for node, data in graph.nodes(data=True)}
-
-    #IL FAUDRAIT VERIFIER SI LE NOEUD QU'ON AJOUTE N'EST PAS DÉJÀ UN NOEUD
-
-    closest_node = min(distances_to_new_node, key=distances_to_new_node.get)
-    # distances_to_new_node.remove(closest_node)
-    closest_node1 = min(distances_to_new_node, key=distances_to_new_node.get)
-    graph.add_node(id, pos=(x, y))
-    graph.add_edge(id, closest_node,
-                   weight=distances_to_new_node[closest_node])
-    graph.add_edge(id, closest_node1,
-                   weight=distances_to_new_node[closest_node1])
-    return id
-
-t0 = time.time()
-# Create a subgraph with only visible edges
-'''
-subgraph = graph.copy()
-for u, v, data in graph.edges(data=True):
-    if 'hidden' in data and data['hidden']:
-        subgraph.remove_edge(u, v)
-'''
-# addDynamicNodePos(300, 160,2902)
-# addDynamicNodeGoal(301, 251,2515)
-
-
-def shortest_path(source,target):
-    id_source = addDynamicNodePos(135,source[0],source[1])
-    id_goal = addDynamicNodeGoal(136,target[0],target[1],id_source)
-    #print(target[0], target[1])
-    # Find the shortest path based on physical distances
-    shortest_path=[]
-    shortest_path = nx.shortest_path(graph, id_source, id_goal, weight='weight')
-
-    i=1
-    cols = False
-    lines=False
-    time.sleep(0.1)
-    if(shortest_path!=[]):
-        while i < len(shortest_path):
-            if not lines and 'col' in graph.nodes[shortest_path[i]] and 'col' in graph.nodes[shortest_path[i-1]]:
-                if graph.nodes[shortest_path[i]]['col'] == graph.nodes[shortest_path[i-1]]['col']:
-                    shortest_path.pop(i-1)
-                    cols = True
-                    i=i-1
-                else:
-                    if cols:
-                        if(len(shortest_path)-i>0):
-                            i = i+1
-                            cols = False
-                        
-                    
-            if not cols and 'line' in graph.nodes[shortest_path[i]] and 'line' in graph.nodes[shortest_path[i-1]]:
-                if graph.nodes[shortest_path[i]]['line']==graph.nodes[shortest_path[i-1]]['line']:
-
-                        shortest_path.pop(i-1)    
-                        i=i-1
-                        lines = True
-                else:
-                    if lines:        
-                        if(len(shortest_path)-i>0):
-                            i = i + 1   
-                            lines = False
-
-            i=i+1
-
-    #remove first element since its node will be removed
-    shortest_path.pop(0)
-
-    #remove last element since its position is known in the main function and its node will be removed
-    #shortest_path.pop(-1)   
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    if(id_source == 135):
-        graph.remove_node(135)
-    if(id_goal == 136):
-        graph.remove_node(136)
-
-    # graph.remove_node(300)
-    #print(time.time()-t0)
-    #print("Shortest path based on physical distances:", shortest_path)
-    print("SHORTEST   ",shortest_path)
-
-    return shortest_path
-
-
-# Visualize the graph with node positions
-def plotGraph():
-    pos = nx.get_node_attributes(graph, 'pos')
-    nx.draw(graph, pos, with_labels=True, node_size=500, font_size=12)
-    #edge_labels = nx.get_edge_attributes(graph, 'weight')
-    #nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
-
-    plt.show()
-
-def getNodePosition(node):
-    return graph.nodes[node]['pos']
-    #return nx.get_node_attributes(graph, 'pos')[node]
-# You can also draw edges with attributes (e.g., weights)
-#edge_labels = nx.get_edge_attributes(graph, 'weight')
-#nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
-
-#print(shortest_path([1,123],[8,650]))
-#print(getNodePosition(46))
-#plotGraph()
-
-
 

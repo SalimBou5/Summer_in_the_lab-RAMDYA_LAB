@@ -90,7 +90,6 @@ int k = 0;
 bool dir = true; //true --> x ; false -->y
 bool arrived = false;
 
-
 void loop()
 {   
     /*if(currX != stepperX.currentPosition() || currY != stepperY.currentPosition()){
@@ -134,7 +133,6 @@ void loop()
     }else if(escape==0){
       stepperX.moveTo(x);
       stepperY.moveTo(y);
-      
       stepperX.run();
       if(dir and stepperX.currentPosition()== x)
         dir = false;
@@ -146,7 +144,7 @@ void loop()
     if(k>10){
         long currX1 = stepperX.currentPosition();
         long currY1 = stepperY.currentPosition();
-        if(abs(currX - currX1) > 600 || abs(currY - currY1)> 300){
+        if(abs(currX - currX1) > 1000 || abs(currY - currY1)> 500){
           currX = currX1;
           currY = currY1;
           //Serial.println(currX);
@@ -163,14 +161,14 @@ void loop()
             //delay(100);
           //} 
         }
-        else if (!arrived and abs(currX1-x)<300 and abs(currY1-y)<20){
+        else if (!arrived and stepperX.currentPosition()==x && stepperY.currentPosition()==y){
             arrived = true;
             currX=x;
             currY=y;
             //if(Serial.available()==0){
               //Serial.println("+-+-+-+-+-+-");
               //Serial.println(currX);
-              Serial.write("A");
+             Serial.write("A");
               //delay(50);
               Serial.write("X");
               Serial.write((byte*)&currX, sizeof(long));
@@ -181,6 +179,7 @@ void loop()
               //delay(100);
             //} 
           }
+
       k=0;
     }else        k++;
  
