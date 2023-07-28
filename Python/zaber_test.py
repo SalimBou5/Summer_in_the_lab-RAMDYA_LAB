@@ -3,6 +3,8 @@ import serial
 zaber = serial.Serial('COM3', 115200, timeout=1)  # Set an appropriate timeout value in seconds
 
 # Send a command to the Zaber motor
+
+
 command ="/1 move rel 10000\n"  # Replace this with the actual command you want to send
 zaber.write(command.encode())
 

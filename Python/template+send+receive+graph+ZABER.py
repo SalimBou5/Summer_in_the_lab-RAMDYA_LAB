@@ -2,8 +2,11 @@ import serial
 import time
 import math
 import struct
+
 #from inputimeout import inputimeout
+
 import graph_map as graph
+
 #-------LIBRARIES FOR COMPUTER VISION------
 import numpy as np
 from skimage.io import imshow, imread
@@ -13,9 +16,16 @@ from matplotlib.patches import Rectangle
 from skimage.feature import match_template
 from skimage.feature import peak_local_max
 #-------------------------------------------
-arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
-zaber = serial.Serial('COM3', 115200, timeout=1)  # Set an appropriate timeout value in seconds
 
+#Open the serial port to communicate with the arduino
+arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
+
+#Open the serial port to communicate with the Zaber motor
+zaber = serial.Serial('COM3', 115200, timeout=1)
+
+#home the Zaber motor
+command = "/home\n" 
+zaber.write(command.encode())
 
 
 #Position of the final goal
@@ -41,7 +51,9 @@ dragging=False
 
 
 '''
-    ENCORE À AJUSTER
+    ENCORE À AJUSTER  --> Une idée possible est de hardcoder les destinations des balles en cm en plus des pixels 
+    --> Comme ça au lieu de convertir pixels to cm, on envoie directement x_cm et y_cm et on évite la distortion due à la caméra
+    ---> NE PAS OUBLIER QUE LA CAMERA N'EST QUE LE SUPPORT --> CE QUI IMPORTE C'EST L'ENVIRONNEMENT PHYSIQUE
 '''
 BALLS_DESTINATION = [
                         [[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
@@ -86,6 +98,7 @@ def stepsToY(s):
 def closeEnough(x,y,threshold):
     return abs(x-y)<threshold 
 
+#CHECK
 def convertPixelsToCm(x):
     '''
         To BE CHECKED
@@ -94,7 +107,13 @@ def convertPixelsToCm(x):
 
 
 #---------------------COMPUTER VISION (Pattern Matching)-------------------------
+'''
+    Normalement A NE Pas Toucher --> TOUT FONCTIONNE PARFAITEMENT
+    Maximum ajuster le threshold + si on hardcode les destinations des balles en cm, il faudra 
+    changer convertPixelsToCm(dest[0]) en x_cm et convertPixelsToCm(dest[1]) en y_cm 
+'''
 sample = imread('python\image0.jpg')
+
 #Regions to divide the image to 9 parts (The only parts where it is possible to find a ball)
 DIVIDE_REGIONS = [[25,550,130,450],  [1520,2050,130,450],[3020,3520,130,450],
                   [25,550,1300,1650],[1520,2050,1300,1650] , [3020,3520,1300,1650],
@@ -124,9 +143,11 @@ ax[1].set_title('Patch',fontsize=15)
 plt.show()
 '''
 
-#To be adjusted 
+'''
+    Il y a peut-être juste ça à ajuster
+'''
 #Threshold to detect if a ball has reached a ball_destination
-THRESHOLD_DETECTION_READY = 20
+THRESHOLD_DETECTION_READY = 20 
 
 #List to store all the balls that are ready to be dragged back
 balls_ready=[]
@@ -218,13 +239,14 @@ def sendTarget(x,y,posX,posY,arrived,path):
     #*********************INTERPRETATION OF COMPUTER VISION*******************
     if len(balls_ready) :
         try:
-            '''CONDITION à DETERMINER QUAND S'ÉCHAPPER À GAUCHE A GAUCHE'''
-                        #encore à définir d = 1 ou -1
-
-            #Determine the closest ball_ready to the magnet --> Goal
+            '''
+                On est passé en 3D plus besoin d'escape 1 ou -1, on s'en fout, juste différent de zéro
+            '''
+            
             print("check dumm  ",x,"   ",y)
             print("check dumm  22  ",posX,"   ",posY)
 
+            #Determine the closest ball_ready to the magnet --> Goal
             x,y = find_nearest_point(balls_ready,posX,posY) 
  
             #If the goal is close enough to the magnet, then trigger drag_back 
@@ -232,7 +254,17 @@ def sendTarget(x,y,posX,posY,arrived,path):
             if(arrived and len(path)==0):
                 print("GOAL REACHED")
                 escape = -1
+                balls_ready.remove([x,y])
+            
             elif closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
+                '''
+                    Cette condition n'est presque jamais atteinte, je pense que c'est parce que python reçoit les valeurs
+                    un peu tard (probablement que ce que je dis est faux parce qu'il y avait une erreur dans convertXtoSteps 
+                    qui faisait probablement q'on ne rentrait pas dans cette condition)
+                    Mais quelque soit on s'en fout, je pense que de toutes les façons la première condition est mieux parce que
+                    si on a un minimum de confiance en nos moteurs, arrived suffit pour dire que le but est atteint
+                    --> MAIS CHECK
+                '''
                 escape = -1 #À ajuster, 1 ou -1 --> Il faut trouver le bon algorithme
                 balls_ready.remove([x,y])
                 print("CLOSE")
@@ -247,6 +279,9 @@ def sendTarget(x,y,posX,posY,arrived,path):
         
     #If no ball reached a desination, go to rest
     else:
+        '''
+            TO BE DONE
+        '''
         rest_check = False
         if(posX in REST_X):
             return  x_old,y_old
@@ -282,6 +317,10 @@ def sendTarget(x,y,posX,posY,arrived,path):
                 '''
 
                 if(arrived):  #---> if (posMagnet == posFirstNode)
+                    '''
+                        Qu'on soit clair le path retourné par graph_map ne contient pas le noeud de départ
+                        mais contient les noeuds qui "font les coins" + le noeud D'ARRIVEE !!!
+                    '''
                     size_path = len(path)
 
                     if(size_path > 1):  #New target = first node of the shortest path
@@ -309,6 +348,7 @@ def sendTarget(x,y,posX,posY,arrived,path):
                     elif(size_path == 0):
                         print("GOAL REACHED NON ACHIEVABLE")
                         escape = -1
+
                     '''else:  #REACHED THE GOAL --> SHOULD NOT ENTER IN THIS FUNCTION --> ERROR
                         print("GOAL REACHED")
                         return x_old,y_old, arrived, path
@@ -374,11 +414,14 @@ def sendTarget(x,y,posX,posY,arrived,path):
         #-----------------TRIGGER DRAG BACK--------------
         elif(escape == 1 or escape == -1): 
             print("++++++++++++++++++++++++++")
-            # Send a command to the Zaber motor
-            command ="/1 move rel 10000\n"  # Replace this with the actual command you want to send
+            
+            # Zaber goes down
+            command ="/1 move rel 30000\n"  
             zaber.write(command.encode())
+            
             data = f"{escape}\n"
             arduino.write(data.encode())  # Encode and send the data
+            
             time.sleep(0.2)
 
         else:
@@ -402,10 +445,14 @@ arrived = False
 #shortest path towards the goal
 path=[1]
 
-time.sleep(2)
+'''
+    Ce sleep est essentiel sinon la première commande envoyée à l'arduino est ignorée
+'''
+time.sleep(2) 
+
 #graph.plotGraph()
 
-#empty the serial before starting
+#empty the serial before starting --> pour le fun
 while(arduino.in_waiting):
     arduino.read()
 
@@ -418,7 +465,9 @@ while True:
         
         elif data == b'F':
             dragging = False
-            command ="/1 move rel -10000\n"  # Replace this with the actual command you want to send
+
+            # Zaber goes up
+            command ="/1 move rel -20000\n"  
             zaber.write(command.encode())
 
             print("Received:", dragging)
@@ -436,6 +485,8 @@ while True:
                 #posX = stepsToX(struct.unpack('l', posX_bytes)[0])
                 posX_temp = stepsToX(struct.unpack('l', posX_bytes)[0])
 
+                #Normalement ce truc est inutile mais on ne sait jamais
+                #Je l'ai mis parce que je me suis trompé et j'envoyer l'adresse d'une variable locale
                 if(posX_temp < 30):
                     posX=posX_temp
             
@@ -461,6 +512,7 @@ while True:
         #arduino.read() 
     
     #image = 'python\image'+str(i)+'.jpg'
+    #Juste pour avancer moins rapidement 
     if(k%2==0):
         image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
         print("iiiiii    ",i)
