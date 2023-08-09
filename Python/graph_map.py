@@ -160,12 +160,12 @@ positions = {
     126: {'pos': (3537, 2927), 'col':21, 'line': 6},
     # *********************************************
     # ---------------REST POSITIONS----------------
-    127: {'pos': (1040, 617), 'col':  "r1", 'line': 2},
-    128: {'pos': (1040, 1775), 'col': "r1", 'line': 4},
-    129: {'pos': (1040, 2927), 'col': "r1", 'line': 6},
-    130: {'pos': (2516, 617), 'col': "r2", 'line': 2},
-    131: {'pos': (2516, 1775), 'col':"r2", 'line': 4},
-    132: {'pos': (2516, 2927), 'col':"r2", 'line': 6},
+    #127: {'pos': (1040, 617), 'col':  "r1", 'line': 2},
+    #128: {'pos': (1040, 1775), 'col': "r1", 'line': 4},
+    #129: {'pos': (1040, 2927), 'col': "r1", 'line': 6},
+    #130: {'pos': (2516, 617), 'col': "r2", 'line': 2},
+    #131: {'pos': (2516, 1775), 'col':"r2", 'line': 4},
+    #132: {'pos': (2516, 2927), 'col':"r2", 'line': 6},
 }
 
 
@@ -245,6 +245,7 @@ linkLine(5, 1.4)
 linkLine(6)
 
 # -------LinkRest------
+'''
 linkRest(127, 38)
 linkRest(128, 40)
 linkRest(129, 42)
@@ -255,6 +256,8 @@ addEdge(127, 128)
 addEdge(128, 129)
 addEdge(130, 131)
 addEdge(131, 132)
+'''
+
 
 def node_exists_at_position(x, y):
     for node, data in graph.nodes(data=True):
@@ -388,6 +391,7 @@ def plotGraph():
 def getNodePosition(node):
     return graph.nodes[node]['pos']
     #return nx.get_node_attributes(graph, 'pos')[node]
+
 # You can also draw edges with attributes (e.g., weights)
 #edge_labels = nx.get_edge_attributes(graph, 'weight')
 #nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)

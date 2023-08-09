@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from skimage.feature import match_template
 from skimage.feature import peak_local_max
+import cv2
+import sys
 #-------------------------------------------
 
 #Open the serial port to communicate with the arduino
@@ -29,7 +31,6 @@ zaber.write(command.encode())
 command="/move abs 500000\n"
 zaber.write(command.encode())
 
-time.sleep(1)
 #Position of the final goal
 targetX=0
 targetY=0
@@ -51,7 +52,7 @@ dragging=False
     ---> NE PAS OUBLIER QUE LA CAMERA N'EST QUE LE SUPPORT --> CE QUI IMPORTE C'EST L'ENVIRONNEMENT PHYSIQUE
 '''
 
-BALLS_DESTINATION = [ 
+BALLS_DESTINATION = [
                         [[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
                         [[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
                         [[3055,190],[3140,190],[3225,190],[3310,190],[3395,190],[3480,190]], #top_right
@@ -90,11 +91,7 @@ def stepsToY(s):
     return (RAYON*math.pi*s)/(EMPIRICAL*REV)  #cm
 
 def closeEnough(x,y,threshold):
-    try:
-        return abs(x-y)<threshold
-    except Exception:
-        print("Error in closeEnough function")
-        return False 
+    return abs(x-y)<threshold 
 
 #CHECK
 def convertPixelsToCm(x):
@@ -172,8 +169,6 @@ def balls_detection(image):
                 fc='none')
     ax[1].add_patch(rect)
     '''
-    #length ball_destination
-    len_dest = len(BALLS_DESTINATION)
 
     #Do pattern matching for each of the divided regions
     for i in range(len(DIVIDE_REGIONS)):
@@ -195,25 +190,24 @@ def balls_detection(image):
             x = x + x_min + patch_width / 2
             y = y + y_min + patch_height / 2
 
-            if i in range(len_dest):
-                #Check if a ball reached a destination
-                for dest in BALLS_DESTINATION[i]:
-                    #If a ball reached a destination, append the list balls_ready
-                    if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
-                        #x_cm = convertPixelsToCm(x)
-                        #y_cm = convertPixelsToCm(y)
-                        x_cm=convertPixelsToCm(dest[0])
-                        y_cm=convertPixelsToCm(dest[1])
-                        if not [x_cm, y_cm] in balls_ready:
-                            balls_ready.append([x_cm,y_cm])
-                        break
+            #Check if a ball reached a destination
+            for dest in BALLS_DESTINATION[i]:
+                #If a ball reached a destination, append the list balls_ready
+                if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
+                    #x_cm = convertPixelsToCm(x)
+                    #y_cm = convertPixelsToCm(y)
+                    x_cm=convertPixelsToCm(dest[0])
+                    y_cm=convertPixelsToCm(dest[1])
+                    if not [x_cm, y_cm] in balls_ready:
+                        balls_ready.append([x_cm,y_cm])
+                    break
     
-                    #Add the detected rectangles that are matching a destination to the image
-                    '''
-                    rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
-                                fc='none')
-                    ax[1].add_patch(rect)
-                    '''
+                #Add the detected rectangles that are matching a destination to the image
+                '''
+                rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
+                               fc='none')
+                ax[1].add_patch(rect)
+                '''
     #plt.show()
 
 
@@ -284,7 +278,7 @@ def sendTarget(x,y,posX,posY,arrived,path):
             TO BE DONE
         '''
         rest_check = False
-        if(posX in [0,0]):
+        if(posX in REST_X):
             return  x_old,y_old
         else :
             #x,y = find_nearest_point(posX,posY)
@@ -445,7 +439,7 @@ path=[]
 '''
     Ce sleep est essentiel sinon la première commande envoyée à l'arduino est ignorée
 '''
-time.sleep(2) 
+#time.sleep(2) 
 
 #graph.plotGraph()
 
@@ -453,7 +447,39 @@ time.sleep(2)
 while(arduino.in_waiting):
     arduino.read()
 
-while True:
+port = 0
+rec = False
+# Open a connection to the webcam (camera index 0 by default)
+cap = cv2.VideoCapture(port)
+
+cont = 0
+
+# Check if the camera opened successfully
+while cap.isOpened():
+    # Capture frame-by-frame    
+    ret, frame = cap.read()
+    imgS = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # set green and red channels to 0
+    imgS[:, :, 1] = 0
+
+    imgR = cv2.cvtColor(imgS, cv2.COLOR_HSV2BGR)
+    if ret:
+        if cv2.waitKey(1) == ord('r'):
+            rec = not rec
+        if rec:
+            imgR = cv2.resize(imgR,(760,570))
+
+    balls_detection(frame)
+
+
+    if(not dragging):# and not arduino.in_waiting):
+        targetX,targetY,arrived,path =  sendTarget(targetX,targetY,posX,posY,arrived,path)
+        #ICI DECIDER OU ALLER
+        #time.sleep(0.2)
+
+    else:
+        break
+
     if arduino.in_waiting:
         data = arduino.read()
         if data == b'T':
@@ -509,18 +535,7 @@ while True:
     #while(arduino.in_waiting):
         #arduino.read() 
     
-    #image = 'python\image'+str(i)+'.jpg'
-    #Juste pour avancer moins rapidement 
-    if(k%2==0):
-        image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
-        print("iiiiii    ",i)
-        balls_detection(image)
-        i=i+1
-
-
-        if(not dragging):# and not arduino.in_waiting):
-            targetX,targetY,arrived,path =  sendTarget(targetX,targetY,posX,posY,arrived,path)
-            #ICI DECIDER OU ALLER
-            #time.sleep(0.2)
             
-    k=k+1
+# Release the webcam and close the display window
+cap.release()
+cv2.destroyAllWindows()

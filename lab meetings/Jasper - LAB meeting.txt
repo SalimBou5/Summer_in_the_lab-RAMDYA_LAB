@@ -1,0 +1,25 @@
+The transformation of intentions into movements in adult drosophilia 
+
+Sensations--> perceptions --> intentnions --> movements
+
+The black box between intention and movement:
+Intention --> descending neurons --> premotor neurons --> motor neurons --> muscles --> movement
+
+Stephen huston
+
+
+To avoid this blackbox, a backward strategy is the best way "in his opinion"  --> start from the movement and go backwards to the intentions
+
+Some sensory neurons detect vibration. Other detect position and others directional movement
+
+Using connectomics to map motor and premotor circuits
+
+Most motor neurons have unique identifiable morphologies
+
+John tuthill's lab --> mapped each motor neuron's muscle target
+
+
+Two-photon calcium imaging from one motor neuron during behaviour  --> frame rate is too low (because scans pixel by pixel)--> new microscopes for faster imaging --> *light sheet microscope for 100x faster 3D calcium imaging,  *epifluorescence microscopy for 1000x faster voltage imaging
+
+*Single objective light-sheet microscopy (SCAPE) --> faster (scans the whole sample at once --> higher frame rate) BUT less resolution + less depth --> speed is much more important
+*Voltage imaging with a fast epifluorescence scope (voltage indicators) --> characterization of new lines

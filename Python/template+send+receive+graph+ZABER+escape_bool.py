@@ -26,10 +26,7 @@ zaber = serial.Serial('COM3', 115200, timeout=1)
 #home the Zaber motor
 command = "/home\n" 
 zaber.write(command.encode())
-command="/move abs 500000\n"
-zaber.write(command.encode())
 
-time.sleep(1)
 #Position of the final goal
 targetX=0
 targetY=0
@@ -39,7 +36,7 @@ posX=0
 posY=0
 
 #transmitted to arduino to know whether to drag_back or to move
-escape=0
+escape = False
 
 #Boolean to inform if the magnet is currently dragging back
 dragging=False
@@ -51,7 +48,7 @@ dragging=False
     ---> NE PAS OUBLIER QUE LA CAMERA N'EST QUE LE SUPPORT --> CE QUI IMPORTE C'EST L'ENVIRONNEMENT PHYSIQUE
 '''
 
-BALLS_DESTINATION = [ 
+BALLS_DESTINATION = [
                         [[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
                         [[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
                         [[3055,190],[3140,190],[3225,190],[3310,190],[3395,190],[3480,190]], #top_right
@@ -90,11 +87,7 @@ def stepsToY(s):
     return (RAYON*math.pi*s)/(EMPIRICAL*REV)  #cm
 
 def closeEnough(x,y,threshold):
-    try:
-        return abs(x-y)<threshold
-    except Exception:
-        print("Error in closeEnough function")
-        return False 
+    return abs(x-y)<threshold 
 
 #CHECK
 def convertPixelsToCm(x):
@@ -172,8 +165,6 @@ def balls_detection(image):
                 fc='none')
     ax[1].add_patch(rect)
     '''
-    #length ball_destination
-    len_dest = len(BALLS_DESTINATION)
 
     #Do pattern matching for each of the divided regions
     for i in range(len(DIVIDE_REGIONS)):
@@ -195,25 +186,24 @@ def balls_detection(image):
             x = x + x_min + patch_width / 2
             y = y + y_min + patch_height / 2
 
-            if i in range(len_dest):
-                #Check if a ball reached a destination
-                for dest in BALLS_DESTINATION[i]:
-                    #If a ball reached a destination, append the list balls_ready
-                    if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
-                        #x_cm = convertPixelsToCm(x)
-                        #y_cm = convertPixelsToCm(y)
-                        x_cm=convertPixelsToCm(dest[0])
-                        y_cm=convertPixelsToCm(dest[1])
-                        if not [x_cm, y_cm] in balls_ready:
-                            balls_ready.append([x_cm,y_cm])
-                        break
+            #Check if a ball reached a destination
+            for dest in BALLS_DESTINATION[i]:
+                #If a ball reached a destination, append the list balls_ready
+                if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
+                    #x_cm = convertPixelsToCm(x)
+                    #y_cm = convertPixelsToCm(y)
+                    x_cm=convertPixelsToCm(dest[0])
+                    y_cm=convertPixelsToCm(dest[1])
+                    if not [x_cm, y_cm] in balls_ready:
+                        balls_ready.append([x_cm,y_cm])
+                    break
     
-                    #Add the detected rectangles that are matching a destination to the image
-                    '''
-                    rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
-                                fc='none')
-                    ax[1].add_patch(rect)
-                    '''
+                #Add the detected rectangles that are matching a destination to the image
+                '''
+                rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
+                               fc='none')
+                ax[1].add_patch(rect)
+                '''
     #plt.show()
 
 
@@ -254,7 +244,7 @@ def sendTarget(x,y,posX,posY,arrived,path):
             # and remove the ball from the list balls_ready 
             if(arrived and len(path)==0):
                 print("GOAL REACHED")
-                escape = 1
+                escape = True
                 balls_ready.remove([x,y])
             
             elif closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
@@ -266,13 +256,13 @@ def sendTarget(x,y,posX,posY,arrived,path):
                     si on a un minimum de confiance en nos moteurs, arrived suffit pour dire que le but est atteint
                     --> MAIS CHECK
                 '''
-                escape = 1 #À ajuster, 1 ou -1 --> Il faut trouver le bon algorithme
+                escape = True #À ajuster, 1 ou -1 --> Il faut trouver le bon algorithme
                 balls_ready.remove([x,y])
                 print("CLOSE")
 
             #If the magnet is far from the ball, allow it to move towards it
             else: 
-                escape = 0
+                escape = False
 
         except Exception:
             print("ERROR 0")
@@ -284,12 +274,12 @@ def sendTarget(x,y,posX,posY,arrived,path):
             TO BE DONE
         '''
         rest_check = False
-        if(posX in [0,0]):
+        if(posX in REST_X):
             return  x_old,y_old
         else :
             #x,y = find_nearest_point(posX,posY)
             rest_check = False
-            escape = 0
+            escape = False
 
 
     #********************GOAL ANALYSIS AND MOTORS CONTROL**********************
@@ -334,7 +324,7 @@ def sendTarget(x,y,posX,posY,arrived,path):
                         print("x  y   ",realTargetX,"   ",realTargetY)
                         print("pos  ",posX,"   ",posY)
 
-
+                        print("data0  ",data)
                         arduino.write(data.encode())  # Encode and send the data
 
 
@@ -342,13 +332,16 @@ def sendTarget(x,y,posX,posY,arrived,path):
                         print("else  x  y   ",x,"   ",y)
                         print("else  pos  ",posX,"   ",posY)
                         data = f"{escape},{convertXtoSteps(x)},{convertYtoSteps(y)}\n" 
+                                                
+                        print("data1  ",data)
+                        
                         arduino.write(data.encode())  # Encode and send the data
                         arrived=False
                         path.pop(0)
 
                     elif(size_path == 0):
                         print("GOAL REACHED NON ACHIEVABLE")
-                        escape = -1
+                        escape = True
 
                     '''else:  #REACHED THE GOAL --> SHOULD NOT ENTER IN THIS FUNCTION --> ERROR
                         print("GOAL REACHED")
@@ -406,6 +399,9 @@ def sendTarget(x,y,posX,posY,arrived,path):
                 print("elif x  y   ",realTargetX,"   ",realTargetY)
 
                 data = f"{escape},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n"  
+                
+                print("data2  ",data)
+                
                 arduino.write(data.encode())  # Encode and send the data
         
             else:
@@ -420,6 +416,9 @@ def sendTarget(x,y,posX,posY,arrived,path):
             command ="/1 move rel 30000\n"  
             zaber.write(command.encode())
             data = f"{escape}\n"
+
+            print("data3  ",data)
+
             arduino.write(data.encode())  # Encode and send the data
             time.sleep(0.2)
 
@@ -440,7 +439,7 @@ k=0
 arrived = False
 
 #shortest path towards the goal
-path=[]
+path=[1]
 
 '''
     Ce sleep est essentiel sinon la première commande envoyée à l'arduino est ignorée

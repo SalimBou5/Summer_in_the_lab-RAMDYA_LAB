@@ -63,7 +63,6 @@ BALLS_DESTINATION = [
                         [[3055,2508],[3140,2508],[3225,2508],[3310,2508],[3395,2508],[3480,2508]] #bottom_right
                     ]
 
-
 ########## EVIDEMMENT CHANGER ###########
 X_MIN = -30
 X_MAX = 30
@@ -202,8 +201,12 @@ def balls_detection(image):
                     if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
                         #x_cm = convertPixelsToCm(x)
                         #y_cm = convertPixelsToCm(y)
+                        '''
+                            SUR LE VRAI SETUP, HARDCODER LES DESTINATIONS DES BALLES EN CM
+                        '''
                         x_cm=convertPixelsToCm(dest[0])
                         y_cm=convertPixelsToCm(dest[1])
+                        
                         if not [x_cm, y_cm] in balls_ready:
                             balls_ready.append([x_cm,y_cm])
                         break
@@ -222,6 +225,11 @@ THRESHOLD_REST = 0.05
 THRESHOLD_MAGNET_ARRIVED = 0.05
 THRESHOLD_SAME_GOAL = 0.05
 
+'''
+    SUR LE VRAI SETUP, ADAPTER CES POSITIONS
+'''
+REST_X = [-2,6,15,25]
+
 def find_nearest_point(array, XA, YA):
     nearest_point = array[0]
     if len(array)>1:
@@ -234,63 +242,163 @@ def find_nearest_point(array, XA, YA):
                 nearest_point = ar
     return nearest_point
 
-def sendTarget(x,y,posX,posY,arrived,path):
-    x_old,y_old = x,y
-    
-    #*********************INTERPRETATION OF COMPUTER VISION*******************
+def find_nearest_X(array, XA):
+    nearest_X = array[0]
+    if len(array)>1:
+        min = abs(array[0] - XA)
+        #nearest_point=array[0]
+        for ar in array:
+            d = abs(ar - XA)
+            if(min>d):
+                min = d
+                nearest_X = ar
+    return nearest_X
+
+#******INTERPRETATION OF COMPUTER VISION****
+def computerVisionInterpretation(x,y,posX,posY):
     if len(balls_ready) :
-        try:
+        '''
+            On est passé en 3D plus besoin d'escape 1 ou -1, on s'en fout, juste différent de zéro
+        '''
+        
+        print("check dumm  22  ",posX,"   ",posY)
+
+        #Determine the closest ball_ready to the magnet --> Goal
+        x,y = find_nearest_point(balls_ready,posX,posY) 
+        print("check dumm  ",x,"   ",y)
+
+        #If the goal is close enough to the magnet, then trigger drag_back 
+        # and remove the ball from the list balls_ready 
+        '''if(arrived and len(path)==0):
+            print("GOAL REACHED")
+            escape = 1
+            balls_ready.remove([x,y])
+        '''
+        if closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
             '''
-                On est passé en 3D plus besoin d'escape 1 ou -1, on s'en fout, juste différent de zéro
+                Cette condition n'est presque jamais atteinte, je pense que c'est parce que python reçoit les valeurs
+                un peu tard (probablement que ce que je dis est faux parce qu'il y avait une erreur dans convertXtoSteps 
+                qui faisait probablement q'on ne rentrait pas dans cette condition)
+                Mais quelque soit on s'en fout, je pense que de toutes les façons la première condition est mieux parce que
+                si on a un minimum de confiance en nos moteurs, arrived suffit pour dire que le but est atteint
+                --> MAIS CHECK
             '''
-            
-            print("check dumm  ",x,"   ",y)
-            print("check dumm  22  ",posX,"   ",posY)
+            escape = 1
+            balls_ready.remove([x,y])
+            print("CLOSE")
 
-            #Determine the closest ball_ready to the magnet --> Goal
-            x,y = find_nearest_point(balls_ready,posX,posY) 
- 
-            #If the goal is close enough to the magnet, then trigger drag_back 
-            # and remove the ball from the list balls_ready 
-            if(arrived and len(path)==0):
-                print("GOAL REACHED")
-                escape = 1
-                balls_ready.remove([x,y])
-            
-            elif closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
-                '''
-                    Cette condition n'est presque jamais atteinte, je pense que c'est parce que python reçoit les valeurs
-                    un peu tard (probablement que ce que je dis est faux parce qu'il y avait une erreur dans convertXtoSteps 
-                    qui faisait probablement q'on ne rentrait pas dans cette condition)
-                    Mais quelque soit on s'en fout, je pense que de toutes les façons la première condition est mieux parce que
-                    si on a un minimum de confiance en nos moteurs, arrived suffit pour dire que le but est atteint
-                    --> MAIS CHECK
-                '''
-                escape = 1 #À ajuster, 1 ou -1 --> Il faut trouver le bon algorithme
-                balls_ready.remove([x,y])
-                print("CLOSE")
-
-            #If the magnet is far from the ball, allow it to move towards it
-            else: 
-                escape = 0
-
-        except Exception:
-            print("ERROR 0")
-            return
+        #If the magnet is far from the ball, allow it to move towards it
+        else: 
+            escape = 0
         
     #If no ball reached a desination, go to rest
     else:
+        escape = 0
+        x = find_nearest_X(REST_X,posX)
+        y = y
+        print(posX)
+        print("x = ",x,"  y = ",y)
+
         '''
             TO BE DONE
-        '''
+        
         rest_check = False
-        if(posX in [0,0]):
-            return  x_old,y_old
+        if(posX in REST_X):
+            return  x_old,y_old,0
         else :
             #x,y = find_nearest_point(posX,posY)
             rest_check = False
             escape = 0
+        '''
+    return x,y,escape
 
+def goalReached(x, y, arrived, path):
+    '''
+        Qu'on soit clair le path retourné par graph_map ne contient pas le noeud de départ
+        mais contient les noeuds qui "font les coins" + le noeud D'ARRIVEE !!!
+    '''
+
+    size_path = len(path)
+    data =""
+    ESCAPE = 0
+
+    if(size_path > 1):  #New target = first node of the shortest path
+        realTargetX, realTargetY = graph.getNodePosition(path[0])
+        data = f"{escape},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n" 
+        arrived = False   
+        #remove first node of the path since the command to go towards it has already been sent
+        path.pop(0)
+        #print("x  y   ",realTargetX,"   ",realTargetY)
+        #print("pos  ",posX,"   ",posY)
+
+    elif (size_path == 1): #Go directly towards the goal
+        #print("else  x  y   ",x,"   ",y)
+        #print("else  pos  ",posX,"   ",posY)
+        data = f"{ESCAPE},{convertXtoSteps(x)},{convertYtoSteps(y)}\n" 
+        arrived = False
+        path.pop(0)
+
+    elif(size_path == 0):
+        print("IN REST")
+        #escape = -1
+
+
+    arduino.write(data.encode())  # Encode and send the data to the Arduino
+
+    return arrived,path
+
+def setNewGoal(x, y, posX, posY, path):
+    '''
+        Set new goal --> establish new shortest path towards this goal
+        --> new target = first node of the shortest path
+    '''              
+    ESCAPE = 0
+    #Reset arrived to false 
+    arrived = False
+    #print("CORRECT INPUT") 
+    #time.sleep(0.1)
+
+    #Establish new shortest path
+    path = graph.shortest_path([posX,posY],[x,y])
+
+    #Reset realTargetX and realTargetY
+    realTargetX = 0
+    realTargetY = 0
+    path_size = len(path)
+    
+    if path_size > 0:  #New target = first node of the shortest path
+        realTargetX, realTargetY = graph.getNodePosition(path[0])
+        #remove first node of the path since the command to go towards will be sent now
+        path.pop(0)
+
+    else:  #Go directly towards the goal
+        realTargetX = x
+        realTargetY = y
+
+    print("elif x  y   ",realTargetX,"   ",realTargetY)
+
+    data = f"{ESCAPE},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n"  
+    arduino.write(data.encode())  # Encode and send the data to the Arduino
+
+    return arrived,path
+
+def dragBack():
+    ESCAPE = 1
+    # Zaber goes down
+    command ="/1 move rel 30000\n"  
+    zaber.write(command.encode())
+    data = f"{ESCAPE}\n"
+    arduino.write(data.encode())  # Encode and send the data
+    time.sleep(0.2)
+
+#Function to send the target to the robot
+def sendTarget(x,y,posX,posY,arrived,path):
+    x_old,y_old = x,y
+    try:
+        x,y,escape=computerVisionInterpretation(x,y,posX,posY)
+    except Exception:
+        print("EXCEPTION 0")
+        return x_old,y_old,arrived,path
 
     #********************GOAL ANALYSIS AND MOTORS CONTROL**********************
     try : 
@@ -298,7 +406,6 @@ def sendTarget(x,y,posX,posY,arrived,path):
         #if allowed to move
         if(not escape):
             print("***************************************")
-            print(x,"     ",y)
             #''''''''''''''''''''''If the goal did not change'''''''''''''''''''''''''''''''''''''''''
             if closeEnough(x,x_old,THRESHOLD_SAME_GOAL) and closeEnough(y,y_old,THRESHOLD_SAME_GOAL): 
                 '''
@@ -318,95 +425,16 @@ def sendTarget(x,y,posX,posY,arrived,path):
                 '''
 
                 if(arrived):  #---> if (posMagnet == posFirstNode)
-                    '''
-                        Qu'on soit clair le path retourné par graph_map ne contient pas le noeud de départ
-                        mais contient les noeuds qui "font les coins" + le noeud D'ARRIVEE !!!
-                    '''
-                    size_path = len(path)
-
-                    if(size_path > 1):  #New target = first node of the shortest path
-                        realTargetX, realTargetY = graph.getNodePosition(path[0])
-                        data = f"{escape},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n" 
-                        arrived = False   
-                        #remove first node of the path since the command to go towards it has already been sent
-                        print(path[0])
-                        path.pop(0)
-                        print("x  y   ",realTargetX,"   ",realTargetY)
-                        print("pos  ",posX,"   ",posY)
-
-
-                        arduino.write(data.encode())  # Encode and send the data
-
-
-                    elif (size_path == 1): #Go directly towards the goal
-                        print("else  x  y   ",x,"   ",y)
-                        print("else  pos  ",posX,"   ",posY)
-                        data = f"{escape},{convertXtoSteps(x)},{convertYtoSteps(y)}\n" 
-                        arduino.write(data.encode())  # Encode and send the data
-                        arrived=False
-                        path.pop(0)
-
-                    elif(size_path == 0):
-                        print("GOAL REACHED NON ACHIEVABLE")
-                        escape = -1
-
-                    '''else:  #REACHED THE GOAL --> SHOULD NOT ENTER IN THIS FUNCTION --> ERROR
-                        print("GOAL REACHED")
-                        return x_old,y_old, arrived, path
-                    print("ççççççççççççç")
-                    print("TARGET   ", path[0])'''
-
-                    print(path)
-
+                    arrived, path = goalReached(x,y,arrived, path)
 
                 elif(not arrived): # Do NOTHING
-                    #print(path[0])
                     #realTargetX, realTargetY = graph.getNodePosition(path[0])
-                    #print("x   y   :",realTargetX, realTargetY)
-                    #print("POS   X   Y",posX,posY)
                     return x_old,y_old,arrived, path
                 
             #''''''''''''''''''''''''''''IF THE GOAL CHANGED'''''''''''''''''''''''''''
             #Check whether the position is acceptable
             elif x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX: 
-                #if not arrived : #ENLEVER CONDITION  !!!!!!!
-                '''
-                    Set new goal --> establish new shortest path towards this goal
-                    --> new target = first node of the shortest path
-                '''              
-                #Reset arrived to false 
-                arrived = False
-                #print("CORRECT INPUT") 
-                #print("GOAL  ", x *659/4, y*659/4)
-                #time.sleep(0.1)
-
-                #Establish new shortest path
-                path = graph.shortest_path([posX,posY],[x,y])
-                #Reset realTargetX and realTargetY
-                realTargetX = 0
-                realTargetY = 0
-                path_size = len(path)
-                
-                #print("ççççççççççççç")
-                if path_size > 0:  #New target = first node of the shortest path
-                    realTargetX, realTargetY = graph.getNodePosition(path[0])
-                    #remove first node of the path since the command to go towards will be sent now
-                    #print("TARGET   ", path[0])
-
-                    path.pop(0)
-
-                    '''elif path_size == 1:  #Go directly towards the goal
-                    realTargetX = Y
-                    realTargetY = X'''
-
-                else:  #Go directly towards the goal
-                    realTargetX = x
-                    realTargetY = y
-
-                print("elif x  y   ",realTargetX,"   ",realTargetY)
-
-                data = f"{escape},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n"  
-                arduino.write(data.encode())  # Encode and send the data
+                arrived, path = setNewGoal(x,y,posX,posY,path)
         
             else:
                 print("WRONG INPUT2")
@@ -415,23 +443,12 @@ def sendTarget(x,y,posX,posY,arrived,path):
         #-----------------TRIGGER DRAG BACK--------------
         else: 
             print("++++++++++++++++++++++++++")
+            dragBack()
             
-            # Zaber goes down
-            command ="/1 move rel 30000\n"  
-            zaber.write(command.encode())
-            data = f"{escape}\n"
-            arduino.write(data.encode())  # Encode and send the data
-            time.sleep(0.2)
-
-
-        
-        #arduino.write(data.encode())  # Encode and send the data
-
     except ValueError:
         print("WRONG INPUT")
-        return x_old, y_old
+        return x_old, y_old,arrived,path
     
-    #print("DATA   ",data)
     return x,y,arrived,path
     
 

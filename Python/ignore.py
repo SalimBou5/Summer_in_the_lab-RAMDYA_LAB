@@ -26,10 +26,7 @@ zaber = serial.Serial('COM3', 115200, timeout=1)
 #home the Zaber motor
 command = "/home\n" 
 zaber.write(command.encode())
-command="/move abs 500000\n"
-zaber.write(command.encode())
 
-time.sleep(1)
 #Position of the final goal
 targetX=0
 targetY=0
@@ -51,7 +48,7 @@ dragging=False
     ---> NE PAS OUBLIER QUE LA CAMERA N'EST QUE LE SUPPORT --> CE QUI IMPORTE C'EST L'ENVIRONNEMENT PHYSIQUE
 '''
 
-BALLS_DESTINATION = [ 
+BALLS_DESTINATION = [
                         [[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
                         [[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
                         [[3055,190],[3140,190],[3225,190],[3310,190],[3395,190],[3480,190]], #top_right
@@ -90,11 +87,7 @@ def stepsToY(s):
     return (RAYON*math.pi*s)/(EMPIRICAL*REV)  #cm
 
 def closeEnough(x,y,threshold):
-    try:
-        return abs(x-y)<threshold
-    except Exception:
-        print("Error in closeEnough function")
-        return False 
+    return abs(x-y)<threshold 
 
 #CHECK
 def convertPixelsToCm(x):
@@ -172,8 +165,6 @@ def balls_detection(image):
                 fc='none')
     ax[1].add_patch(rect)
     '''
-    #length ball_destination
-    len_dest = len(BALLS_DESTINATION)
 
     #Do pattern matching for each of the divided regions
     for i in range(len(DIVIDE_REGIONS)):
@@ -195,25 +186,26 @@ def balls_detection(image):
             x = x + x_min + patch_width / 2
             y = y + y_min + patch_height / 2
 
-            if i in range(len_dest):
-                #Check if a ball reached a destination
-                for dest in BALLS_DESTINATION[i]:
-                    #If a ball reached a destination, append the list balls_ready
-                    if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
-                        #x_cm = convertPixelsToCm(x)
-                        #y_cm = convertPixelsToCm(y)
-                        x_cm=convertPixelsToCm(dest[0])
-                        y_cm=convertPixelsToCm(dest[1])
-                        if not [x_cm, y_cm] in balls_ready:
-                            balls_ready.append([x_cm,y_cm])
-                        break
+            #Check if a ball reached a destination
+            for dest in BALLS_DESTINATION[i]:
+                #If a ball reached a destination, append the list balls_ready
+                if [x,y] not in tirma and closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
+                    #x_cm = convertPixelsToCm(x)
+                    #y_cm = convertPixelsToCm(y)
+                    x_cm=convertPixelsToCm(dest[0])
+                    y_cm=convertPixelsToCm(dest[1])
+                    tirma.append([x,y])
+                    print([x,y])
+                    if not [x_cm, y_cm] in balls_ready:
+                        balls_ready.append([x_cm,y_cm])
+                    break
     
-                    #Add the detected rectangles that are matching a destination to the image
-                    '''
-                    rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
-                                fc='none')
-                    ax[1].add_patch(rect)
-                    '''
+                #Add the detected rectangles that are matching a destination to the image
+                '''
+                rect = plt.Rectangle((dest[0], dest[1]), patch_height, patch_width, color='b', 
+                               fc='none')
+                ax[1].add_patch(rect)
+                '''
     #plt.show()
 
 
@@ -221,6 +213,8 @@ def balls_detection(image):
 THRESHOLD_REST = 0.05
 THRESHOLD_MAGNET_ARRIVED = 0.05
 THRESHOLD_SAME_GOAL = 0.05
+
+tirma =[]
 
 def find_nearest_point(array, XA, YA):
     nearest_point = array[0]
@@ -244,8 +238,8 @@ def sendTarget(x,y,posX,posY,arrived,path):
                 On est passé en 3D plus besoin d'escape 1 ou -1, on s'en fout, juste différent de zéro
             '''
             
-            print("check dumm  ",x,"   ",y)
-            print("check dumm  22  ",posX,"   ",posY)
+            #print("check dumm  ",x,"   ",y)
+            #print("check dumm  22  ",posX,"   ",posY)
 
             #Determine the closest ball_ready to the magnet --> Goal
             x,y = find_nearest_point(balls_ready,posX,posY) 
@@ -284,7 +278,7 @@ def sendTarget(x,y,posX,posY,arrived,path):
             TO BE DONE
         '''
         rest_check = False
-        if(posX in [0,0]):
+        if(posX in REST_X):
             return  x_old,y_old
         else :
             #x,y = find_nearest_point(posX,posY)
@@ -297,8 +291,8 @@ def sendTarget(x,y,posX,posY,arrived,path):
 
         #if allowed to move
         if(not escape):
-            print("***************************************")
-            print(x,"     ",y)
+            #print("***************************************")
+            #print(x,"     ",y)
             #''''''''''''''''''''''If the goal did not change'''''''''''''''''''''''''''''''''''''''''
             if closeEnough(x,x_old,THRESHOLD_SAME_GOAL) and closeEnough(y,y_old,THRESHOLD_SAME_GOAL): 
                 '''
@@ -329,18 +323,18 @@ def sendTarget(x,y,posX,posY,arrived,path):
                         data = f"{escape},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n" 
                         arrived = False   
                         #remove first node of the path since the command to go towards it has already been sent
-                        print(path[0])
+                        #print(path[0])
                         path.pop(0)
-                        print("x  y   ",realTargetX,"   ",realTargetY)
-                        print("pos  ",posX,"   ",posY)
+                        #print("x  y   ",realTargetX,"   ",realTargetY)
+                        #print("pos  ",posX,"   ",posY)
 
 
                         arduino.write(data.encode())  # Encode and send the data
 
 
                     elif (size_path == 1): #Go directly towards the goal
-                        print("else  x  y   ",x,"   ",y)
-                        print("else  pos  ",posX,"   ",posY)
+                        #print("else  x  y   ",x,"   ",y)
+                        #print("else  pos  ",posX,"   ",posY)
                         data = f"{escape},{convertXtoSteps(x)},{convertYtoSteps(y)}\n" 
                         arduino.write(data.encode())  # Encode and send the data
                         arrived=False
@@ -403,7 +397,7 @@ def sendTarget(x,y,posX,posY,arrived,path):
                     realTargetX = x
                     realTargetY = y
 
-                print("elif x  y   ",realTargetX,"   ",realTargetY)
+                #print("elif x  y   ",realTargetX,"   ",realTargetY)
 
                 data = f"{escape},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n"  
                 arduino.write(data.encode())  # Encode and send the data
@@ -414,7 +408,7 @@ def sendTarget(x,y,posX,posY,arrived,path):
             
         #-----------------TRIGGER DRAG BACK--------------
         else: 
-            print("++++++++++++++++++++++++++")
+            #print("++++++++++++++++++++++++++")
             
             # Zaber goes down
             command ="/1 move rel 30000\n"  
@@ -440,7 +434,7 @@ k=0
 arrived = False
 
 #shortest path towards the goal
-path=[]
+path=[1]
 
 '''
     Ce sleep est essentiel sinon la première commande envoyée à l'arduino est ignorée
@@ -452,6 +446,8 @@ time.sleep(2)
 #empty the serial before starting --> pour le fun
 while(arduino.in_waiting):
     arduino.read()
+
+image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_1\\image385.jpg"
 
 while True:
     if arduino.in_waiting:
@@ -512,8 +508,7 @@ while True:
     #image = 'python\image'+str(i)+'.jpg'
     #Juste pour avancer moins rapidement 
     if(k%2==0):
-        image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
-        print("iiiiii    ",i)
+        #print("iiiiii    ",i)
         balls_detection(image)
         i=i+1
 
