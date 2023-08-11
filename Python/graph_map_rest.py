@@ -158,13 +158,51 @@ positions = {
     125: {'pos': (3537, 2362), 'col':21, 'line': 5},
     126: {'pos': (3537, 2927), 'col':21, 'line': 6},
     # *********************************************
-    # ---------------REST POSITIONS----------------
-    #127: {'pos': (1040, 617), 'col':  "r1", 'line': 2},
-    #128: {'pos': (1040, 1775), 'col': "r1", 'line': 4},
-    #129: {'pos': (1040, 2927), 'col': "r1", 'line': 6},
-    #130: {'pos': (2516, 617), 'col': "r2", 'line': 2},
-    #131: {'pos': (2516, 1775), 'col':"r2", 'line': 4},
-    #132: {'pos': (2516, 2927), 'col':"r2", 'line': 6},
+
+}
+
+
+'''
+EN CHANGEANT REST_X NE PAS OUBLIER DE CHANGER LA VALEUR DES COL
+'''
+# ---------------REST POSITIONS----------------
+rest_positions = {
+    127: {'pos': (-2, 52), 'col':  "r-2", 'line': 1},
+    128: {'pos': (-2, 617), 'col': "r-2", 'line': 2},
+    129: {'pos': (-2, 1214), 'col':"r-2", 'line': 3},
+    130: {'pos': (-2, 1775), 'col':"r-2", 'line': 4},
+    131: {'pos': (-2, 2362), 'col':"r-2", 'line': 5},
+    132: {'pos': (-2, 2927), 'col':"r-2", 'line': 6},
+    133: {'pos': (5, 52), 'col':  "r5", 'line': 1},
+    134: {'pos': (5, 617), 'col': "r5", 'line': 2},
+    135: {'pos': (5, 1214), 'col':"r5", 'line': 3},
+    136: {'pos': (5, 1775), 'col':"r5", 'line': 4},
+    137: {'pos': (5, 2362), 'col':"r5", 'line': 5},
+    138: {'pos': (5, 2927), 'col':"r5", 'line': 6},
+    139: {'pos': (8, 52), 'col':  "r8", 'line': 1},
+    140: {'pos': (8, 617), 'col': "r8", 'line': 2},
+    141: {'pos': (8, 1214), 'col':"r8", 'line': 3},
+    142: {'pos': (8, 1775), 'col':"r8", 'line': 4},
+    143: {'pos': (8, 2362), 'col':"r8", 'line': 5},
+    144: {'pos': (8, 2927), 'col':"r8", 'line': 6},
+    145: {'pos': (14, 52), 'col':  "r14", 'line': 1},
+    146: {'pos': (14, 617), 'col': "r14", 'line': 2},
+    147: {'pos': (14, 1214), 'col':"r14", 'line': 3},
+    148: {'pos': (14, 1775), 'col':"r14", 'line': 4},
+    149: {'pos': (14, 2362), 'col':"r14", 'line': 5},
+    150: {'pos': (14, 2927), 'col':"r14", 'line': 6},
+    151: {'pos': (17, 52), 'col':  "r17", 'line': 1},
+    152: {'pos': (17, 617), 'col': "r17", 'line': 2},
+    153: {'pos': (17, 1214), 'col':"r17", 'line': 3},
+    154: {'pos': (17, 1775), 'col':"r17", 'line': 4},
+    155: {'pos': (17, 2362), 'col':"r17", 'line': 5},
+    156: {'pos': (17, 2927), 'col':"r17", 'line': 6},
+    157: {'pos': (23, 52), 'col':  "r23", 'line': 1},
+    158: {'pos': (23, 617), 'col': "r23", 'line': 2},
+    159: {'pos': (23, 1214), 'col':"r23", 'line': 3},
+    160: {'pos': (23, 1775), 'col':"r23", 'line': 4},
+    161: {'pos': (23, 2362), 'col':"r23", 'line': 5},
+    162: {'pos': (23, 2927), 'col':"r23", 'line': 6},
 }
 
 
@@ -179,6 +217,11 @@ for node in positions:
     x, y = positions[node]['pos']
     positions[node]['pos'] = (convertPixelsToCm(x), convertPixelsToCm(y))
 
+for node in rest_positions:
+    x, y = rest_positions[node]['pos']
+    rest_positions[node]['pos'] = (x, convertPixelsToCm(y))
+
+positions.update(rest_positions)
 # Add nodes with positions to the graph
 graph.add_nodes_from((node_id, attrs) for node_id, attrs in positions.items())
 
@@ -215,11 +258,12 @@ def linkBlockCols(start):
     # ------colonne7------
     linkCol(start+6*6, 1)
 
-'''
+
 def linkRest(rest, start):
-    addEdge(rest, start)
-    addEdge(rest, start+6)
-'''
+    addEdge(rest, start,0.9)
+    addEdge(rest,rest+6)
+    addEdge(rest+6, start+6,0.9)
+
 
 # Add edges to the graph with physical distances as edge weights
 
@@ -229,33 +273,52 @@ linkBlockCols(43)
 linkBlockCols(85)
 
 # ------Line1---------
-linkLine(1, 1.6)
+linkLine(1, 0.8)
 # ------Line2---------
-linkLine(2, 1.5)
+linkLine(2, 1.4)
 # ------Line3---------
-linkLine(3, 1.55)
+linkLine(3, 1.4)
 # ------Line4---------
 linkLine(4, 1.4)
 # ------Line5---------
-linkLine(5, 1.4)
+linkLine(5, 1.5)
 # ------Line6---------
-linkLine(6)
+linkLine(6,1.6)
 
 # -------LinkRest------
-'''
-linkRest(127, 38)
-linkRest(128, 40)
-linkRest(129, 42)
-linkRest(130, 80)
-linkRest(131, 82)
-linkRest(132, 84)
-addEdge(127, 128)
-addEdge(128, 129)
-addEdge(130, 131)
-addEdge(131, 132)
-'''
+addEdge(127,1,0.8)
+addEdge(128,2)
+addEdge(129,3,0.8)
+addEdge(130,4)
+addEdge(131,5,0.8)
+addEdge(132,6)
+linkRest(133, 37)
+linkRest(134,38)
+linkRest(135,39)
+linkRest(136,40)
+linkRest(137,41)
+linkRest(138,42)
+linkRest(145, 109)
+linkRest(146, 110)
+linkRest(147, 111)
+linkRest(148, 112)
+linkRest(149, 113)
+linkRest(150, 114)
+addEdge(157,121,0.8)
+addEdge(158,122)
+addEdge(159,123,0.8)
+addEdge(160,124)
+addEdge(161,125,0.8)
+addEdge(162,126)
+linkCol(127,0.95)
+linkCol(133)
+linkCol(139)
+linkCol(145)
+linkCol(151)
+linkCol(157,0.95)
 
-THRESHOLD_EXISTS_AT_POSITION = 0.05
+
+THRESHOLD_EXISTS_AT_POSITION = 0.01
 def node_exists_at_position(x, y):
     for node, data in graph.nodes(data=True):
         if 'pos' in data and abs(data['pos'][0]-x)<THRESHOLD_EXISTS_AT_POSITION and abs(data['pos'][1])-y<THRESHOLD_EXISTS_AT_POSITION:
@@ -286,23 +349,55 @@ def addDynamicNodeGoal(id, x, y, id_source):
 '''
 
 
-def addDynamicNode(id, x, y,id_source = 0):
+def addDynamicNode(id, x, y, id_source = 0, rest = False):
+    
     node = node_exists_at_position(x,y)
     if(node):
-        return node
+        s = graph.nodes[node]['col']
+        l = graph.nodes[node]['line']
+    elif id == 0:
+        s = l = "s"
+    else:
+        s = l = "g"
+
     distances_to_new_node = {node: ((x - data['pos'][0])**2 + (
         y - data['pos'][1])**2)**0.5 for node, data in graph.nodes(data=True)}
+    
     closest_node = min(distances_to_new_node, key=distances_to_new_node.get)
-    print(closest_node)
     d = distances_to_new_node[closest_node]
-    distances_to_new_node.pop(closest_node)
-    graph.add_node(id, pos=(x, y))
-    graph.add_edge(id, closest_node, weight=d)
 
-    if(closest_node!=id_source):
-        closest_node1 = min(distances_to_new_node, key=distances_to_new_node.get)
-        graph.add_edge(id, closest_node1,
-                    weight=distances_to_new_node[closest_node1])
+    distances_to_new_node.pop(closest_node)
+
+    closest_node1 = min(distances_to_new_node, key=distances_to_new_node.get)
+    if rest:
+        ch = "r" + str(round(x))
+        graph.add_node(id, pos=(x, y), col=ch)
+        graph.add_edge(id, closest_node, weight=d*1.4)
+        if(closest_node!=id_source):
+            graph.add_edge(id, closest_node1,
+                            weight=distances_to_new_node[closest_node1]*1.4)
+        distances_to_new_node = {
+            node: abs(y - data['pos'][1])  for node, data in graph.nodes(data=True)
+                                            if 'col' in data and data['col'] == ch
+        }
+        closest_node_rest = min(distances_to_new_node, key=distances_to_new_node.get)
+        d = distances_to_new_node[closest_node_rest]
+        distances_to_new_node.pop(closest_node_rest)
+        closest_node1_rest = min(distances_to_new_node, key=distances_to_new_node.get)
+
+        graph.add_edge(id, closest_node_rest, weight=d)
+
+        graph.add_edge(id, closest_node1_rest,
+                           weight=distances_to_new_node[closest_node1_rest])
+
+    else:
+        graph.add_node(id, pos=(x, y) ,col = s, line = l )
+
+        graph.add_edge(id, closest_node, weight=d)
+        if(closest_node!=id_source):
+            graph.add_edge(id, closest_node1,
+                           weight=distances_to_new_node[closest_node1])
+
     return id
 
 
@@ -310,14 +405,14 @@ def addDynamicNode(id, x, y,id_source = 0):
 # Find the shortest path based on physical distances
 # The output is a list of nodes that the robot has to visit in order to reach the goal
 # It does NOT contain the start position but it contains the goal position
-def shortest_path(source,target):
+def shortest_path(source,target,rest=False):
     '''
         Convention: 
             *node 0 is the source
-            *node 127 is the goal
+            *node 200 is the goal
     '''
-    id_source = addDynamicNode(0,source[0],source[1])
-    id_goal = addDynamicNode(127,target[0],target[1],id_source)
+    id_source = addDynamicNode(0,source[0],source[1],rest = rest)
+    id_goal = addDynamicNode(200,target[0],target[1],id_source)
 
     # Find the shortest path based on physical distances
     shortest_path = nx.shortest_path(graph, id_source, id_goal, weight='weight')
@@ -325,11 +420,19 @@ def shortest_path(source,target):
     i=1
     cols = False
     lines=False
-    #time.sleep(0.1)  #CHECK IF NEEDED
-    
+    time.sleep(0.1)  #CHECK IF NEEDED
+
+    node1 = graph.nodes[shortest_path[1]]
+    node_source = graph.nodes[id_source]
+
+    if node1['col'] != node_source['col'] and node1['line'] != node_source['line']:
+        i=3
+
+
     #The task of these conditions is to remove the nodes that are on the same line or column
     if(shortest_path!=[]):
         while i < len(shortest_path):
+            print(shortest_path)
             if not lines and 'col' in graph.nodes[shortest_path[i]] and 'col' in graph.nodes[shortest_path[i-1]]:
                 if graph.nodes[shortest_path[i]]['col'] == graph.nodes[shortest_path[i-1]]['col']:
                     shortest_path.pop(i-1)
@@ -340,9 +443,10 @@ def shortest_path(source,target):
                         if(len(shortest_path)-i>0):
                             i = i+1
                             cols = False
-                        
-                    
-            if not cols and 'line' in graph.nodes[shortest_path[i]] and 'line' in graph.nodes[shortest_path[i-1]]:
+
+            print(shortest_path)
+
+            if i < len(shortest_path) and not cols and 'line' in graph.nodes[shortest_path[i]] and 'line' in graph.nodes[shortest_path[i-1]]:
                 if graph.nodes[shortest_path[i]]['line']==graph.nodes[shortest_path[i-1]]['line']:
 
                         shortest_path.pop(i-1)    
@@ -351,21 +455,22 @@ def shortest_path(source,target):
                 else:
                     if lines:        
                         if(len(shortest_path)-i>0):
-                            i = i + 1   
+                            #i = i + 1   
                             lines = False
 
             i=i+1
 
-    #remove first element since its node will be removed
-    print("shshs  ",shortest_path)
-    shortest_path.pop(0)
+
 
     #after setting the path remove the nodes of the source and goal from the graph 
     #since they are not needed anymore (only if they do not superpose with other nodes that are already in the graph)
     if(id_source == 0):
         graph.remove_node(0)
-    if(id_goal == 127):
-        graph.remove_node(127)
+        #remove first element since its node will be removed
+        if shortest_path[0]==0:
+            shortest_path.pop(0)
+    if(id_goal == 200):
+        graph.remove_node(200)
 
     print("Shortest path based on physical distances:", shortest_path)
 

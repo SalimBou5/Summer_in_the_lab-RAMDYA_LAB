@@ -6,6 +6,7 @@ from matplotlib.patches import Rectangle
 from skimage.feature import match_template
 from skimage.feature import peak_local_max
 import time
+import cv2
 
 sample = imread('python\image0.jpg')
 #sample_g = rgb2gray(sample)
@@ -33,10 +34,11 @@ sample5 = sample[1300:1650, 1520:2050]
 #ax[0].set_title('Patch Location',fontsize=15)
 
 #Showing Patch
-patch = sample5[patch_y_min:patch_y_max, patch_x_min:patch_x_max]
+#patch = sample5[patch_y_min:patch_y_max, patch_x_min:patch_x_max]
 #ax[1].imshow(patch,cmap='gray')
 #ax[1].set_title('Patch',fontsize=15)
 #plt.show()
+patch = imread('python\patch.jpg')
 
 #patch = sample[patch_x_min:patch_x_max, patch_y_min:patch_y_max]
 

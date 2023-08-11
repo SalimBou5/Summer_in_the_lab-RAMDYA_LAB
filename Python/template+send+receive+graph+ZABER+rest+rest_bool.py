@@ -3,8 +3,9 @@ import time
 import math
 import struct
 
-#-------Graph -------------
-import graph_map as graph
+#from inputimeout import inputimeout
+
+import graph_map_rest as graph
 
 #-------LIBRARIES FOR COMPUTER VISION------
 import numpy as np
@@ -34,8 +35,10 @@ targetX=0
 targetY=0
 
 #Position of the magnet
-posX=0
-posY=0
+START_X = -2
+START_Y = 0.4
+posX=START_X
+posY=START_Y
 
 #transmitted to arduino to know whether to drag_back or to move
 escape=0
@@ -52,14 +55,23 @@ dragging=False
 
 BALLS_DESTINATION = [ 
                         [[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
-                        [[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
-                        [[3055,190],[3140,190],[3225,190],[3310,190],[3395,190],[3480,190]], #top_right
-                        [[65,1350],[150,1350],[235,1350],[325,1350],[410,1350],[495,1350]], #middle_left
-                        [[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]], #middle_middle
-                        [[3055,1350],[3140,1350],[3225,1350],[3310,1350],[3395,1350],[3480,1350]], #middle_right
-                        [[65,2508],   [150,2508], [235,2508], [325,2508], [410,2508], [495,2508]], #bottom_left
-                        [[1561,2508],[1646,2508],[1731,2508],[1816,2508],[1900,2508],[1985,2508]], #bottom_middle
-                        [[3055,2508],[3140,2508],[3225,2508],[3310,2508],[3395,2508],[3480,2508]] #bottom_right
+                        #[[6500,195],[15000,195],[23500,195],[32500,195],[41000,195],[49500,195]], #top-left
+                        #[[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
+                        [[156100,195],[164600,195],[173100,195],[181600,195],[190000,195],[198500,195]], #top_middle   
+                        #[[3055,190],[3140,190],[3225,190],[3310,190],[3395,190],[3480,190]], #top_right
+                        [[305500,190],[314000,190],[322500,190],[331000,190],[339500,190],[348000,190]], #top_right
+                        #[[65,1350],[150,1350],[235,1350],[325,1350],[410,1350],[495,1350]], #middle_left
+                        [[6500,1350],[15000,1350],[23500,1350],[32500,1350],[41000,1350],[49500,1350]], #middle_left
+                        #[[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]], #middle_middle
+                        [[156100,1350],[164600,1350],[173100,1350],[181600,1350],[190000,1350],[198500,1350]], #middle_middle
+                        #[[3055,1350],[3140,1350],[3225,1350],[3310,1350],[3395,1350],[3480,1350]], #middle_right
+                        [[305500,1350],[314000,1350],[322500,1350],[331000,1350],[339500,1350],[348000,1350]], #middle_right
+                        #[[65,2508],   [150,2508], [235,2508], [325,2508], [410,2508], [495,2508]], #bottom_left
+                        [[6500,2508],   [15000,2508], [23500,2508], [32500,2508], [41000,2508], [49500,2508]], #bottom_left
+                        #[[1561,2508],[1646,2508],[1731,2508],[1816,2508],[1900,2508],[1985,2508]], #bottom_middle
+                        [[156100,2508],[164600,2508],[173100,2508],[181600,2508],[190000,2508],[198500,2508]], #bottom_middle
+                        #[[3055,2508],[3140,2508],[3225,2508],[3310,2508],[3395,2508],[3480,2508]] #bottom_right
+                        [[305500,2508],[314000,2508],[322500,2508],[331000,2508],[339500,2508],[348000,2508]] #bottom_right
                     ]
 
 ########## EVIDEMMENT CHANGER ###########
@@ -108,40 +120,36 @@ def convertPixelsToCm(x):
     Maximum ajuster le threshold + si on hardcode les destinations des balles en cm, il faudra 
     changer convertPixelsToCm(dest[0]) en x_cm et convertPixelsToCm(dest[1]) en y_cm 
 '''
-#sample = imread('python\image0.jpg')
+sample = imread('python\image0.jpg')
 
 #Regions to divide the image to 9 parts (The only parts where it is possible to find a ball)
 DIVIDE_REGIONS = [[25,550,130,450],  [1520,2050,130,450],[3020,3520,130,450],
                   [25,550,1300,1650],[1520,2050,1300,1650] , [3020,3520,1300,1650],
                   [25,550,2420,2820],[1520,2050,2420,2820], [3020,3520,2420,2820]]
 
-#If needed, patch creation taken from the middle region to match the size + code to visualize the patch
-'''
+#The region from where the patter to be matched is taken
 PATCH_X_MIN=200
 PATCH_X_MAX=230
 PATCH_Y_MIN=245
 PATCH_Y_MAX=275
+
+
+#Patch creation taken from the middle region to match the size
 sample_div = sample[1300:1650, 1520:2050]
 patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
 
+#If needed, code to visualize the patch
+'''
 fig, ax = plt.subplots(1,2,figsize=(10,10))
 ax[0].add_patch(Rectangle((PATCH_X_MIN, PATCH_Y_MIN), PATCH_X_MAX-PATCH_X_MIN, PATCH_Y_MAX-PATCH_Y_MIN, edgecolor='b', facecolor='none'));
 ax[0].set_title('Patch Location',fontsize=15)
-
 #Showing Patch
 ax[0].imshow(sample_div,cmap='gray')
 patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
 ax[1].imshow(patch,cmap='gray')
 ax[1].set_title('Patch',fontsize=15)
 plt.show()
-
-cv2.imwrite('python\patch.jpg',patch)
 '''
-
-#pattern to be matched (patch)
-patch = imread('python\patch.jpg')
-
-
 
 '''
     Il y a peut-être juste ça à ajuster
@@ -209,6 +217,21 @@ def balls_detection(image):
                         '''
                         x_cm=convertPixelsToCm(dest[0])
                         y_cm=convertPixelsToCm(dest[1])
+
+                        
+
+                        '''
+                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        !!!!!!!!!!! ENLEVER !!!!!!!!!!!
+                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        '''
+                        dest[0] = 6226256
+                        dest[1] = 45665945
+                        '''
+                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        !!!!!!!!!!! ENLEVER !!!!!!!!!!!
+                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        '''
                         
                         if not [x_cm, y_cm] in balls_ready:
                             balls_ready.append([x_cm,y_cm])
@@ -223,7 +246,7 @@ def balls_detection(image):
     #plt.show()
 
 
-#------------------------------SEND TARGET-------------------------------
+#-------------------------SEND TARGET----------------------------
 THRESHOLD_REST = 0.05
 THRESHOLD_MAGNET_ARRIVED = 0.05
 THRESHOLD_SAME_GOAL = 0.05
@@ -257,6 +280,7 @@ def find_nearest_X(array, XA):
     nearest_X = array[0]
     if len(array)>1:
         min = abs(array[0] - XA)
+        #nearest_point=array[0]
         for ar in array:
             d = abs(ar - XA)
             if(min>d):
@@ -266,23 +290,34 @@ def find_nearest_X(array, XA):
 
 #******INTERPRETATION OF COMPUTER VISION****
 def computerVisionInterpretation(x,y,posX,posY):
-
+    rest = False
     if len(balls_ready) :
         '''
-        If at least a ball reached its destination, then the goal of the magnet is the closest ball
-            *If the magnet reached the final destination, then escape = 1 to trigger dragBack + remove the ball from the list of balls_ready
-            *If the magnet is not at the final destination, then escape = 0 to allow the magnet to move towards the ball
-        '''
-        #Determine the closest ball_ready to the magnet --> Goal
-        x,y = find_nearest_point(balls_ready,posX,posY) 
-        '''
-        print("check dumm  ",x,"   ",y)
-        print("check dumm  22  ",posX,"   ",posY)
+            On est passé en 3D plus besoin d'escape 1 ou -1, on s'en fout, juste différent de zéro
         '''
         
-        #If the goal is close enough to the magnet, then trigger drag_back (escape = 1) 
+        print("check dumm  22  ",posX,"   ",posY)
+
+        #Determine the closest ball_ready to the magnet --> Goal
+        x,y = find_nearest_point(balls_ready,posX,posY) 
+        print("check dumm  ",x,"   ",y)
+
+        #If the goal is close enough to the magnet, then trigger drag_back 
         # and remove the ball from the list balls_ready 
+        '''if(arrived and len(path)==0):
+            print("GOAL REACHED")
+            escape = 1
+            balls_ready.remove([x,y])
+        '''
         if closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
+            '''
+                Cette condition n'est presque jamais atteinte, je pense que c'est parce que python reçoit les valeurs
+                un peu tard (probablement que ce que je dis est faux parce qu'il y avait une erreur dans convertXtoSteps 
+                qui faisait probablement q'on ne rentrait pas dans cette condition)
+                Mais quelque soit on s'en fout, je pense que de toutes les façons la première condition est mieux parce que
+                si on a un minimum de confiance en nos moteurs, arrived suffit pour dire que le but est atteint
+                --> MAIS CHECK
+            '''
             escape = 1
             balls_ready.remove([x,y])
             print("CLOSE")
@@ -291,19 +326,18 @@ def computerVisionInterpretation(x,y,posX,posY):
         else: 
             escape = 0
         
-    #If no ball reached a desination, go to rest --> go to the nearest X where the magnet can rest
-    # --> y is set to the current goal y to be ready if a new ball reaches its destination in that line
+    #If no ball reached a desination, go to rest
     else:
         escape = 0
         x = find_nearest_X(REST_X,posX)
-        y = y
-        '''
+        y = posY
         print(posX)
         print("x = ",x,"  y = ",y)
-        '''
-    return x,y,escape
+        rest = True
 
-def goalReached(x, y, arrived, path):
+    return x,y,escape,rest
+
+def goalReached(x, y, arrived, path, rest):
     '''
         Qu'on soit clair le path retourné par graph_map ne contient pas le noeud de départ
         mais contient les noeuds qui "font les coins" + le noeud D'ARRIVEE !!!
@@ -312,10 +346,10 @@ def goalReached(x, y, arrived, path):
     size_path = len(path)
     data =""
     ESCAPE = 0
-
+    rest_reached = False
     if(size_path > 1):  #New target = first node of the shortest path
         realTargetX, realTargetY = graph.getNodePosition(path[0])
-        data = f"{escape},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n" 
+        data = f"{escape},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n" 
         arrived = False   
         #remove first node of the path since the command to go towards it has already been sent
         path.pop(0)
@@ -325,20 +359,35 @@ def goalReached(x, y, arrived, path):
     elif (size_path == 1): #Go directly towards the goal
         #print("else  x  y   ",x,"   ",y)
         #print("else  pos  ",posX,"   ",posY)
-        data = f"{ESCAPE},{convertXtoSteps(x)},{convertYtoSteps(y)}\n" 
+        data = f"{ESCAPE},{convertXtoSteps(x-START_X)},{convertYtoSteps(y-START_Y)}\n" 
         arrived = False
         path.pop(0)
 
+
     elif(size_path == 0):
+        if rest:
+            rest_reached = True
         print("IN REST")
         #escape = -1
 
+        '''
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ENLEVER
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        '''
+        time.sleep(2)
+        BALLS_DESTINATION[4]=[[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]] #middle_middle
+        '''
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            ENLEVER
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        '''
 
     arduino.write(data.encode())  # Encode and send the data to the Arduino
 
-    return arrived,path
+    return arrived,path, rest_reached
 
-def setNewGoal(x, y, posX, posY, path):
+def setNewGoal(x, y, posX, posY, path, rest, rest_reached):
     '''
         Set new goal --> establish new shortest path towards this goal
         --> new target = first node of the shortest path
@@ -350,14 +399,16 @@ def setNewGoal(x, y, posX, posY, path):
     #time.sleep(0.1)
 
     #Establish new shortest path
-    path = graph.shortest_path([posX,posY],[x,y])
-
+    if not rest:
+        path = graph.shortest_path([posX,posY],[x,y],rest_reached)
+        print("path  ",path)
     #Reset realTargetX and realTargetY
     realTargetX = 0
     realTargetY = 0
     path_size = len(path)
-    
+
     if path_size > 1:  #New target = first node of the shortest path
+        print("path", path)
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         #remove first node of the path since the command to go towards will be sent now
         path.pop(0)
@@ -368,7 +419,7 @@ def setNewGoal(x, y, posX, posY, path):
 
     print("elif x  y   ",realTargetX,"   ",realTargetY)
 
-    data = f"{ESCAPE},{convertXtoSteps(realTargetX)},{convertYtoSteps(realTargetY)}\n"  
+    data = f"{ESCAPE},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n"  
     arduino.write(data.encode())  # Encode and send the data to the Arduino
 
     return arrived,path
@@ -383,13 +434,14 @@ def dragBack():
     time.sleep(0.2)
 
 #Function to send the target to the robot
-def sendTarget(x,y,posX,posY,arrived,path):
+def sendTarget(x,y,posX,posY,arrived,path, rest_reached):
     x_old,y_old = x,y
+    #rest_reached = False
     try:
-        x,y,escape=computerVisionInterpretation(x,y,posX,posY)
+        x,y,escape,rest=computerVisionInterpretation(x,y,posX,posY)
     except Exception:
         print("EXCEPTION 0")
-        return x_old,y_old,arrived,path
+        return x_old,y_old,arrived,path, rest_reached
 
     #********************GOAL ANALYSIS AND MOTORS CONTROL**********************
     try : 
@@ -414,22 +466,23 @@ def sendTarget(x,y,posX,posY,arrived,path):
                         --> Else *** not arrived ***
                             ---> Then don't change the target and leave the function                                            
                 '''
-
+    
                 if(arrived):  #---> if (posMagnet == posFirstNode)
-                    arrived, path = goalReached(x,y,arrived, path)
+                    arrived, path, rest_reached = goalReached(x,y,arrived, path, rest)
 
                 elif(not arrived): # Do NOTHING
                     #realTargetX, realTargetY = graph.getNodePosition(path[0])
-                    return x_old,y_old,arrived, path
+                    return x_old,y_old,arrived, path,rest_reached
                 
             #''''''''''''''''''''''''''''IF THE GOAL CHANGED'''''''''''''''''''''''''''
             #Check whether the position is acceptable
             elif x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX: 
-                arrived, path = setNewGoal(x,y,posX,posY,path)
+                arrived, path = setNewGoal(x,y,posX,posY,path,rest, rest_reached)
+                rest_reached = False
         
             else:
                 print("WRONG INPUT2")
-                return x_old,y_old,arrived,path
+                return x_old,y_old,arrived,path, rest_reached
             
         #-----------------TRIGGER DRAG BACK--------------
         else: 
@@ -438,14 +491,15 @@ def sendTarget(x,y,posX,posY,arrived,path):
             
     except ValueError:
         print("WRONG INPUT")
-        return x_old, y_old,arrived,path
+        return x_old, y_old,arrived,path, rest_reached
     
-    return x,y,arrived,path
+    return x,y,arrived,path, rest_reached
     
 
 i=516
 k=0
 arrived = False
+rest_reached = True
 
 #shortest path towards the goal
 path=[]
@@ -494,7 +548,7 @@ while True:
                 #Normalement ce truc est inutile mais on ne sait jamais
                 #Je l'ai mis parce que je me suis trompé et j'envoyer l'adresse d'une variable locale
                 if(posX_temp < 30):
-                    posX=posX_temp
+                    posX=posX_temp+START_X
             
                     #print("Received Long Values:", posX*659/4)
                     #time.sleep(0.5)
@@ -503,7 +557,7 @@ while True:
                     if(data==b'Y'):
                         posY_bytes = arduino.read(4)
         
-                        posY = stepsToY(struct.unpack('l', posY_bytes)[0])
+                        posY = stepsToY(struct.unpack('l', posY_bytes)[0])+START_Y
                         #print("Received YYYYYYyyy:", posY*659/4)
                     
                 '''
@@ -527,7 +581,7 @@ while True:
 
 
         if(not dragging):# and not arduino.in_waiting):
-            targetX,targetY,arrived,path =  sendTarget(targetX,targetY,posX,posY,arrived,path)
+            targetX,targetY,arrived,path, rest_reached =  sendTarget(targetX,targetY,posX,posY,arrived,path, rest_reached)
             #ICI DECIDER OU ALLER
             #time.sleep(0.2)
             

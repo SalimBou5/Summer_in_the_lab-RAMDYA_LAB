@@ -52,10 +52,10 @@ dragging=False
 '''
 
 BALLS_DESTINATION = [ 
-                        #[[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
-                        [[6500,195],[15000,195],[23500,195],[32500,195],[41000,195],[49500,195]], #top-left
-                        [[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
-                        #[[156100,195],[164600,195],[173100,195],[181600,195],[190000,195],[198500,195]], #top_middle   
+                        [[65,195],[150,195],[235,195],[325,195],[410,195],[495,195]], #top-left
+                        #[[6500,195],[15000,195],[23500,195],[32500,195],[41000,195],[49500,195]], #top-left
+                        #[[1561,195],[1646,195],[1731,195],[1816,195],[1900,195],[1985,195]], #top_middle
+                        [[156100,195],[164600,195],[173100,195],[181600,195],[190000,195],[198500,195]], #top_middle   
                         #[[3055,190],[3140,190],[3225,190],[3310,190],[3395,190],[3480,190]], #top_right
                         [[305500,190],[314000,190],[322500,190],[331000,190],[339500,190],[348000,190]], #top_right
                         #[[65,1350],[150,1350],[235,1350],[325,1350],[410,1350],[495,1350]], #middle_left
@@ -392,13 +392,14 @@ def setNewGoal(x, y, posX, posY, path):
 
     #Establish new shortest path
     path = graph.shortest_path([posX,posY],[x,y])
-
+    print("path  ",path)
     #Reset realTargetX and realTargetY
     realTargetX = 0
     realTargetY = 0
     path_size = len(path)
-    
-    if path_size > 0:  #New target = first node of the shortest path
+
+    if path_size > 1:  #New target = first node of the shortest path
+        print("path", path)
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         #remove first node of the path since the command to go towards will be sent now
         path.pop(0)
