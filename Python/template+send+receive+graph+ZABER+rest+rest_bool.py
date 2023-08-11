@@ -26,6 +26,7 @@ zaber = serial.Serial('COM3', 115200, timeout=1)
 #home the Zaber motor
 command = "/home\n" 
 zaber.write(command.encode())
+time.sleep(3)
 command="/move abs 500000\n"
 zaber.write(command.encode())
 
@@ -127,29 +128,31 @@ DIVIDE_REGIONS = [[25,550,130,450],  [1520,2050,130,450],[3020,3520,130,450],
                   [25,550,1300,1650],[1520,2050,1300,1650] , [3020,3520,1300,1650],
                   [25,550,2420,2820],[1520,2050,2420,2820], [3020,3520,2420,2820]]
 
-#The region from where the patter to be matched is taken
+#If needed, patch creation taken from the middle region to match the size + code to visualize the patch
+'''
 PATCH_X_MIN=200
 PATCH_X_MAX=230
 PATCH_Y_MIN=245
 PATCH_Y_MAX=275
-
-
-#Patch creation taken from the middle region to match the size
 sample_div = sample[1300:1650, 1520:2050]
 patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
 
-#If needed, code to visualize the patch
-'''
 fig, ax = plt.subplots(1,2,figsize=(10,10))
 ax[0].add_patch(Rectangle((PATCH_X_MIN, PATCH_Y_MIN), PATCH_X_MAX-PATCH_X_MIN, PATCH_Y_MAX-PATCH_Y_MIN, edgecolor='b', facecolor='none'));
 ax[0].set_title('Patch Location',fontsize=15)
+
 #Showing Patch
 ax[0].imshow(sample_div,cmap='gray')
 patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
 ax[1].imshow(patch,cmap='gray')
 ax[1].set_title('Patch',fontsize=15)
 plt.show()
+
+cv2.imwrite('python\patch.jpg',patch)
 '''
+
+#pattern to be matched (patch)
+patch = imread('python\patch.jpg')
 
 '''
     Il y a peut-être juste ça à ajuster
@@ -199,9 +202,7 @@ def balls_detection(image):
             ax[1].add_patch(rect)
             '''
 
-            #List containing all of the detected balls 
-            #balls.append([x+x_min+patch_width/2,y+y_min+patch_height/2])
-
+            '''CHECK if patch_width/2 and patch_height/2 are correct'''
             x = x + x_min + patch_width / 2
             y = y + y_min + patch_height / 2
 
@@ -210,8 +211,6 @@ def balls_detection(image):
                 for dest in BALLS_DESTINATION[i]:
                     #If a ball reached a destination, append the list balls_ready
                     if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
-                        #x_cm = convertPixelsToCm(x)
-                        #y_cm = convertPixelsToCm(y)
                         '''
                             SUR LE VRAI SETUP, HARDCODER LES DESTINATIONS DES BALLES EN CM
                         '''
@@ -290,34 +289,22 @@ def find_nearest_X(array, XA):
 
 #******INTERPRETATION OF COMPUTER VISION****
 def computerVisionInterpretation(x,y,posX,posY):
-    rest = False
+    towards_rest = False
     if len(balls_ready) :
         '''
-            On est passé en 3D plus besoin d'escape 1 ou -1, on s'en fout, juste différent de zéro
+        If at least a ball reached its destination, then the goal of the magnet is the closest ball
+            *If the magnet reached the final destination, then escape = 1 to trigger dragBack + remove the ball from the list of balls_ready
+            *If the magnet is not at the final destination, then escape = 0 to allow the magnet to move towards the ball
         '''
-        
-        print("check dumm  22  ",posX,"   ",posY)
-
         #Determine the closest ball_ready to the magnet --> Goal
         x,y = find_nearest_point(balls_ready,posX,posY) 
+        
         print("check dumm  ",x,"   ",y)
+        print("check dumm  22  ",posX,"   ",posY)
 
         #If the goal is close enough to the magnet, then trigger drag_back 
         # and remove the ball from the list balls_ready 
-        '''if(arrived and len(path)==0):
-            print("GOAL REACHED")
-            escape = 1
-            balls_ready.remove([x,y])
-        '''
         if closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
-            '''
-                Cette condition n'est presque jamais atteinte, je pense que c'est parce que python reçoit les valeurs
-                un peu tard (probablement que ce que je dis est faux parce qu'il y avait une erreur dans convertXtoSteps 
-                qui faisait probablement q'on ne rentrait pas dans cette condition)
-                Mais quelque soit on s'en fout, je pense que de toutes les façons la première condition est mieux parce que
-                si on a un minimum de confiance en nos moteurs, arrived suffit pour dire que le but est atteint
-                --> MAIS CHECK
-            '''
             escape = 1
             balls_ready.remove([x,y])
             print("CLOSE")
@@ -326,18 +313,19 @@ def computerVisionInterpretation(x,y,posX,posY):
         else: 
             escape = 0
         
-    #If no ball reached a desination, go to rest
+    #If no ball reached a desination, go to rest --> go to the nearest X where the magnet can rest
+    # --> y is set to the current posY 
     else:
         escape = 0
         x = find_nearest_X(REST_X,posX)
         y = posY
         print(posX)
         print("x = ",x,"  y = ",y)
-        rest = True
+        towards_rest = True
 
-    return x,y,escape,rest
+    return x,y,escape,towards_rest
 
-def goalReached(x, y, arrived, path, rest):
+def goalReached(x, y, arrived, path, towards_rest):
     '''
         Qu'on soit clair le path retourné par graph_map ne contient pas le noeud de départ
         mais contient les noeuds qui "font les coins" + le noeud D'ARRIVEE !!!
@@ -346,7 +334,9 @@ def goalReached(x, y, arrived, path, rest):
     size_path = len(path)
     data =""
     ESCAPE = 0
-    rest_reached = False
+    
+    at_rest = False
+
     if(size_path > 1):  #New target = first node of the shortest path
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         data = f"{escape},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n" 
@@ -365,10 +355,10 @@ def goalReached(x, y, arrived, path, rest):
 
 
     elif(size_path == 0):
-        if rest:
-            rest_reached = True
+        # If we were going towards rest and we reached the final destination, we are actually at rest
+        if towards_rest:
+            at_rest = True
         print("IN REST")
-        #escape = -1
 
         '''
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -385,23 +375,25 @@ def goalReached(x, y, arrived, path, rest):
 
     arduino.write(data.encode())  # Encode and send the data to the Arduino
 
-    return arrived,path, rest_reached
+    return arrived,path, at_rest
 
-def setNewGoal(x, y, posX, posY, path, rest, rest_reached):
+def setNewGoal(x, y, posX, posY, path, towards_rest, at_rest):
     '''
         Set new goal --> establish new shortest path towards this goal
         --> new target = first node of the shortest path
     '''              
     ESCAPE = 0
+
     #Reset arrived to false 
     arrived = False
+
     #print("CORRECT INPUT") 
     #time.sleep(0.1)
 
     #Establish new shortest path
-    if not rest:
-        path = graph.shortest_path([posX,posY],[x,y],rest_reached)
-        print("path  ",path)
+    if not towards_rest:
+        path = graph.shortest_path([posX,posY],[x,y],at_rest)
+        
     #Reset realTargetX and realTargetY
     realTargetX = 0
     realTargetY = 0
@@ -425,6 +417,9 @@ def setNewGoal(x, y, posX, posY, path, rest, rest_reached):
     return arrived,path
 
 def dragBack():
+    '''
+        Trigger drag back --> push the ball
+    '''
     ESCAPE = 1
     # Zaber goes down
     command ="/1 move rel 30000\n"  
@@ -434,14 +429,15 @@ def dragBack():
     time.sleep(0.2)
 
 #Function to send the target to the robot
-def sendTarget(x,y,posX,posY,arrived,path, rest_reached):
+def sendTarget(x,y,posX,posY,arrived,path, at_rest):
     x_old,y_old = x,y
-    #rest_reached = False
+
+    #********************COMPUTER VISION INTERPRETATION*************************
     try:
-        x,y,escape,rest=computerVisionInterpretation(x,y,posX,posY)
+        x,y,escape,towards_rest=computerVisionInterpretation(x,y,posX,posY)
     except Exception:
         print("EXCEPTION 0")
-        return x_old,y_old,arrived,path, rest_reached
+        return x_old,y_old,arrived,path, at_rest
 
     #********************GOAL ANALYSIS AND MOTORS CONTROL**********************
     try : 
@@ -468,38 +464,36 @@ def sendTarget(x,y,posX,posY,arrived,path, rest_reached):
                 '''
     
                 if(arrived):  #---> if (posMagnet == posFirstNode)
-                    arrived, path, rest_reached = goalReached(x,y,arrived, path, rest)
+                    arrived, path, at_rest = goalReached(x,y,arrived, path, towards_rest)
 
                 elif(not arrived): # Do NOTHING
-                    #realTargetX, realTargetY = graph.getNodePosition(path[0])
-                    return x_old,y_old,arrived, path,rest_reached
+                    return x_old,y_old,arrived, path,at_rest
                 
             #''''''''''''''''''''''''''''IF THE GOAL CHANGED'''''''''''''''''''''''''''
             #Check whether the position is acceptable
             elif x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX: 
-                arrived, path = setNewGoal(x,y,posX,posY,path,rest, rest_reached)
-                rest_reached = False
+                arrived, path = setNewGoal(x,y,posX,posY,path,towards_rest, at_rest)
+                at_rest = False
         
             else:
                 print("WRONG INPUT2")
-                return x_old,y_old,arrived,path, rest_reached
+                return x_old,y_old,arrived,path, at_rest
             
         #-----------------TRIGGER DRAG BACK--------------
         else: 
-            print("++++++++++++++++++++++++++")
             dragBack()
             
     except ValueError:
         print("WRONG INPUT")
-        return x_old, y_old,arrived,path, rest_reached
+        return x_old, y_old,arrived,path, at_rest
     
-    return x,y,arrived,path, rest_reached
+    return x,y,arrived,path, at_rest
     
 
 i=516
 k=0
 arrived = False
-rest_reached = True
+at_rest = True
 
 #shortest path towards the goal
 path=[]
@@ -581,7 +575,7 @@ while True:
 
 
         if(not dragging):# and not arduino.in_waiting):
-            targetX,targetY,arrived,path, rest_reached =  sendTarget(targetX,targetY,posX,posY,arrived,path, rest_reached)
+            targetX,targetY,arrived,path, at_rest =  sendTarget(targetX,targetY,posX,posY,arrived,path, at_rest)
             #ICI DECIDER OU ALLER
             #time.sleep(0.2)
             
