@@ -17,7 +17,7 @@
 
 #define DELIMITER ','
 
-#define RAIL_LENGTH 1000    //1.2 cm //!!!!!!!!!!!!!!!!!!! 
+#define RAIL_LENGTH 1917    //1.2 cm //!!!!!!!!!!!!!!!!!!! 
 
 float x = 0;
 float y = 0;

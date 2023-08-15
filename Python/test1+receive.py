@@ -67,8 +67,8 @@ def sendTarget(x,y):
             escape = 0 #input("Enter a numberd: ")
             if int(escape)== 0:  #Ce truc va disparaâitre quand il n'y aura plus d'input donc 
                             #pour le moment, on peut laisser cette mocheté
-                x = -11 #input("Enter a number1: ")
-                y = -6 #input("Enter a number2: ")
+                x = -6.2 #input("Enter a number1: ")
+                y = 0 #input("Enter a number2: ")
 
         except Exception:
             return
