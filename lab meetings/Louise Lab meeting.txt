@@ -1,0 +1,13 @@
+Louise Lab meeting
+
+Steering NeuropMechFly with Reinforcement Learning
+
+*Visual taxis of a moving object
+--> Implementation of steering
+---> Implementation of the moving object
+--> RL training
+
+*odor taxis obstacle avoidance
+
+Implementation of turning --> CPG controller
+

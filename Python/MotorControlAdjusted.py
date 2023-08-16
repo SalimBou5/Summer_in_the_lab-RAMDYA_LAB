@@ -5,14 +5,14 @@ import struct
 
 #from inputimeout import inputimeout
 
-import graph_new as graph
+import graph_adjusted as graph
 
 #-------LIBRARIES FOR COMPUTER VISION------
 import numpy as np
 from skimage.io import imshow, imread
-from skimage.color import rgb2gray
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+#from skimage.color import rgb2gray
+#import matplotlib.pyplot as plt
+#from matplotlib.patches import Rectangle
 from skimage.feature import match_template
 from skimage.feature import peak_local_max
 #-------------------------------------------
@@ -21,22 +21,22 @@ from skimage.feature import peak_local_max
 arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
 
 #Open the serial port to communicate with the Zaber motor
-zaber = serial.Serial('COM3', 115200, timeout=1)
+zaber = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
 
 #home the Zaber motor
 command = "/home\n" 
 zaber.write(command.encode())
-#time.sleep(3)
+time.sleep(3)
 command="/move abs 400000\n"
 zaber.write(command.encode())
 
-#time.sleep(1)
+time.sleep(1)
 #Position of the final goal
 targetX=0
 targetY=0
 
 #Position of the magnet
-START_X = -6.2
+START_X = 0
 START_Y = 0
 posX=START_X
 posY=START_Y
@@ -50,30 +50,31 @@ dragging=False
 
 '''
     ENCORE À AJUSTER  --> Une idée possible est de hardcoder les destinations des balles en cm en plus des pixels 
-    --> Comme ça au lieu de convertir pixels to cm, on envoie directement x_cm et y_cm et on évite la distortion due à la caméra
+    --> Comme ça au lieu de convertir pixels to cm, on envoie d#from matplotlib.patches import Rectangle
+irectement x_cm et y_cm et on évite la distortion due à la caméra
     ---> NE PAS OUBLIER QUE LA CAMERA N'EST QUE LE SUPPORT --> CE QUI IMPORTE C'EST L'ENVIRONNEMENT PHYSIQUE
 '''
 
 BALLS_DESTINATION = [ 
-                        #[[71,195],[1540,195],[245,195],[327,195],[417,195],[500,195]], #top-left
-                        [[6500,195],[15000,195],[23500,195],[32500,195],[41000,195],[49500,195]], #top-left
-                        #[[1565,195],[1650,195],[1735,195],[1820,195],[1913,195],[2000,195]], #top_middle
-                        [[156100,195],[164600,195],[173100,195],[181600,195],[190000,195],[198500,195]], #top_middle   
-                        #[[3057,190],[3143,190],[3230   ,190],[3315,190],[3407,190],[3492,190]], #top_right
-                        [[305500,190],[314000,190],[322500,190],[331000,190],[339500,190],[348000,190]], #top_right
-                        #[[71,1350],[154,1350],[245,1350],[327,1350],[417,1350],[500,1350]], #middle_left
-                        [[6500,1350],[15000,1350],[23500,1350],[32500,1350],[41000,1350],[49500,1350]], #middle_left
-                        #[[1565,1350],[1650,1350],[1735,1350],[1820,1350],[1913,1350],[2000,1350]], #middle_middle
-                        [[156100,1350],[164600,1350],[173100,1350],[181600,1350],[190000,1350],[198500,1350]], #middle_middle
-                        #[[3057,1350],[3143,1350],[3230,1350],[3315,1350],[3407,1350],[3492,1350]], #middle_right
-                        [[305500,1350],[314000,1350],[322500,1350],[331000,1350],[339500,1350],[348000,1350]], #middle_right
-                        #[[71,2508],   [154,2508], [245,2508], [327,2508], [417,2508], [500,2508]], #bottom_left
-                        [[6500,2508],   [15000,2508], [23500,2508], [32500,2508], [41000,2508], [49500,2508]], #bottom_left
-                        #[[1565,2508],[1650,2508],[1735,2508],[1820,2508],[1913,2508],[2000,2508]], #bottom_middle
-                        [[156100,2508],[164600,2508],[173100,2508],[181600,2508],[190000,2508],[198500,2508]], #bottom_middle
-                        #[[3057,2508],[3143,2508],[3230,2508],[3315,2508],[3407,2508],[3492,2508]] #bottom_right
-                        [[305500,2508],[314000,2508],[322500,2508],[331000,2508],[339500,2508],[348000,2508]] #bottom_right
-                    ]
+    [[71,195,[26.3, 15.1]],[154,195,[25.75,15.1]],[245,195,[25.2,15.1]],[327,195,[24.7,15.1]],[417,195,[24.2,15.1]],[500,195,[23.65,15.1]]], #top-left
+    #[[6500,195],[15000,195],[23500,195],[32500,195],[41000,195],[49500,195]], #top-left
+    [[1565,195,[17.4,15.1]],[1650,195,[16.8,15.1]],[1735,195,[16.3,15.1]],[1820,195,[15.8,15.1]],[1913,195,[15.3,15.1]],[2000,195,[14.8,15.1]]], #top_middle   
+    #[[156100,195,[17.4,15.1]],[164600,195,[16.8,15.1]],[173100,195,[16.3,15.1]],[181600,195,[15.8,15.1]],[190000,195,[15.3,15.1]],[198500,195,[14.8,15.1]]], #top_middle   
+    [[3057,190,[8.4,15.1]],[3143,190,[7.9,15.1]],[3230,190, [7.4, 15.1]],[3315,190, [6.9,15.1]],[3407,190, [6.4, 15.1]],[3492,190,[5.9,15.1]]], #top_right
+    #[[305500,190,[8.4,15.1]],[314000,190,[7.9,15.1]],[322500,190, [7.4, 15.1]],[331000,190, [6.9,15.1]],[339500,190, [6.4, 15.1]],[348000,190,[5.9,15.1]]], #top_right
+    [[71,1350,[26.3, 8.15]],[154,1350,[25.75,8.15]],[245,1350,[25.2,8.15]],[327,1350,[24.7,8.15]],[417,1350,[24.2,8.15]],[500,1350,[23.65,8.15]]], #middle_left
+    #[[6500,1350,[26.3, 8.15]],[15000,1350,[25.75,8.15]],[23500,1350,[25.2,8.15]],[32500,1350,[24.7,8.15]],[41000,1350,[24.2,8.15]],[49500,1350,[23.65,8.15]]], #middle_left
+    [[1565,1350,[17.4,8.15]],[1650,1350,[16.8,8.15]],[1735,1350,[16.3,8.15]],[1820,1350,[15.8,8.15]],[1913,1350,[15.3,8.15]],[2000,1350, [14.8,8.15]]], #middle_middle
+    #[[156100,1350,[17.4,8.15]],[164600,1350,[16.8,8.15]],[173100,1350,[16.3,8.15]],[181600,1350,[15.8,8.15]],[190000,1350,[15.3,8.15]],[198500,1350, [14.8,8.15]]], #middle_middle
+    [[3057,1350, [8.4, 8.15]],[3143,1350, [7.9, 8.15]],[3230,1350, [7.4, 8.15]],[3315,1350, [6.9,8.15]] ,[3407,1350, [6.4, 8.15]],[3492,1350,[5.9,8.15]]], #middle_right
+    #[[305500,1350, [8.4, 8.15]],[314000,1350, [7.9, 8.15]],[322500,1350, [7.4, 8.15]],[331000,1350, [6.9,8.15]] ,[339500,1350, [6.4, 8.15]],[348000,1350,[5.9,8.15]]], #middle_right
+    [[71,2508,[26.3, 1.2]],   [154,2508,[25.75,1.2]], [245,2508,[25.2,1.2]], [327,2508,[24.7,1.2]], [417,2508,[24.2,1.2]], [500,2508,[23.65,1.2]]], #bottom_left
+    #[[6500,2508],   [15000,2508], [23500,2508], [32500,2508], [41000,2508], [49500,2508,[23.66,1.2]]], #bottom_left
+    [[1565,2508,[17.4,1.2]],[1650,2508,[16.8,1.2]],[1735,2508,[16.3,1.2]],[1820,2508,[15.8,1.2]],[1913,2508,[15.3,1.2]],[2000,2508, [14.8,1.2]]], #bottom_middle
+    #[[156100,2508],[164600,2508],[173100,2508],[181600,2508],[190000,2508],[198500,2508]], #bottom_middle
+    [[3057,2508,[8.6,1.2]],[3143,2508,[8.1,1.2]],[3230,2508, [7.6, 1.2]],[3315,2508, [7.1,1.2]],[3407,2508, [6.6, 1.2]],[3492,2508,[6.1,1.2]]] #bottom_right
+    #[[305500,2508],[314000,2508],[322500,2508],[331000,2508],[339500,2508],[348000,2508]] #bottom_right
+]
 
 ########## EVIDEMMENT CHANGER ###########
 X_MIN = -30
@@ -121,7 +122,6 @@ def convertPixelsToCm(x):
     Maximum ajuster le threshold + si on hardcode les destinations des balles en cm, il faudra 
     changer convertPixelsToCm(dest[0]) en x_cm et convertPixelsToCm(dest[1]) en y_cm 
 '''
-sample = imread('python\image0.jpg')
 
 #Regions to divide the image to 9 parts (The only parts where it is possible to find a ball)
 DIVIDE_REGIONS = [[25,550,130,450],  [1520,2050,130,450],[3020,3520,130,450],
@@ -134,6 +134,7 @@ PATCH_X_MIN=200
 PATCH_X_MAX=230
 PATCH_Y_MIN=245
 PATCH_Y_MAX=275
+sample = imread('python\image0.jpg')
 sample_div = sample[1300:1650, 1520:2050]
 patch = sample_div[PATCH_Y_MIN:PATCH_Y_MAX, PATCH_X_MIN:PATCH_X_MAX]
 
@@ -152,7 +153,7 @@ cv2.imwrite('python\patch.jpg',patch)
 '''
 
 #pattern to be matched (patch)
-patch = imread('python\patch.jpg')
+patch = imread('patch.jpg')
 
 '''
     Il y a peut-être juste ça à ajuster
@@ -163,6 +164,8 @@ THRESHOLD_DETECTION_READY = 20
 #List to store all the balls that are ready to be dragged back
 balls_ready=[]
 
+def convertPixelstoX(pX):
+    return pX*4./659.
 
 #Function to read an image and detect the balls that reached a destination
 def balls_detection(image):
@@ -214,8 +217,8 @@ def balls_detection(image):
                         '''
                             SUR LE VRAI SETUP, HARDCODER LES DESTINATIONS DES BALLES EN CM
                         '''
-                        x_cm=convertPixelsToCm(dest[0])
-                        y_cm=convertPixelsToCm(dest[1])
+                        #x_cm=convertPixelsToCm(dest[0])
+                        #y_cm=convertPixelsToCm(dest[1])
 
                         
 
@@ -224,16 +227,16 @@ def balls_detection(image):
                         !!!!!!!!!!! ENLEVER !!!!!!!!!!!
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         '''
-                        dest[0] = 6226256
-                        dest[1] = 45665945
+                        #dest[0] = 6226256
+                        #dest[1] = 45665945
+                        #dest[2] = [4242424, 4242424]
                         '''
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         !!!!!!!!!!! ENLEVER !!!!!!!!!!!
                         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         '''
-                        
-                        if not [x_cm, y_cm] in balls_ready:
-                            balls_ready.append([x_cm,y_cm])
+                        if not dest[2] in balls_ready:
+                            balls_ready.append(dest[2])
                         break
     
                     #Add the detected rectangles that are matching a destination to the image
@@ -261,7 +264,7 @@ THRESHOLD_SAME_GOAL = 0.05
     EN CHANGEANT REST_X NE PAS OUBLIER DE CHANGER LA VALEUR DES COL DANS GRAPH_MAP
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 '''
-REST_X = [-2, 5, 8, 14, 17, 23]
+REST_X = [4, 10, 13, 19, 22, 28]
 
 def find_nearest_point(array, XA, YA):
     nearest_point = array[0]
@@ -289,6 +292,8 @@ def find_nearest_X(array, XA):
 
 #******INTERPRETATION OF COMPUTER VISION****
 def computerVisionInterpretation(x,y,posX,posY):
+    #print("balls ready",balls_ready)
+    
     towards_rest = False
     if len(balls_ready) :
         '''
@@ -336,13 +341,14 @@ def goalReached(x, y, arrived, path, towards_rest):
     ESCAPE = 0
     
     at_rest = False
-
+    print(path)
     if(size_path > 1):  #New target = first node of the shortest path
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         data = f"{escape},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n" 
         arrived = False   
         #remove first node of the path since the command to go towards it has already been sent
         path.pop(0)
+        print(path)
         #print("x  y   ",realTargetX,"   ",realTargetY)
         #print("pos  ",posX,"   ",posY)
 
@@ -365,8 +371,8 @@ def goalReached(x, y, arrived, path, towards_rest):
             ENLEVER
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         '''
-        time.sleep(2)
-        BALLS_DESTINATION[4]=[[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]] #middle_middle
+        #time.sleep(2)
+        #BALLS_DESTINATION[4]=[[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]] #middle_middle
         '''
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ENLEVER
@@ -393,15 +399,15 @@ def setNewGoal(x, y, posX, posY, path, towards_rest, at_rest):
     #Establish new shortest path
     if not towards_rest:
         path = graph.shortest_path([posX,posY],[x,y],at_rest)
-    print("33333333")
         
     #Reset realTargetX and realTargetY
     realTargetX = 0
     realTargetY = 0
     path_size = len(path)
 
+    print("path", path)
+
     if path_size > 1:  #New target = first node of the shortest path
-        print("path", path)
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         #remove first node of the path since the command to go towards will be sent now
         path.pop(0)
@@ -423,16 +429,15 @@ def dragBack():
     '''
     ESCAPE = 1
     # Zaber goes down
-    command ="/1 move rel 30000\n"  
+    command ="/1 move rel 6000\n"  
     zaber.write(command.encode())
     data = f"{ESCAPE}\n"
     arduino.write(data.encode())  # Encode and send the data
-    time.sleep(0.2)
+    time.sleep(1)
 
 #Function to send the target to the robot
 def sendTarget(x,y,posX,posY,arrived,path, at_rest):
     x_old,y_old = x,y
-
     #********************COMPUTER VISION INTERPRETATION*************************
     try:
         x,y,escape,towards_rest=computerVisionInterpretation(x,y,posX,posY)
@@ -482,6 +487,7 @@ def sendTarget(x,y,posX,posY,arrived,path, at_rest):
             
         #-----------------TRIGGER DRAG BACK--------------
         else: 
+            print("tirma")
             dragBack()
             
     except ValueError:
@@ -510,6 +516,10 @@ time.sleep(2)
 while(arduino.in_waiting):
     arduino.read()
 
+import os
+import glob
+folder = f"/home/matthias/Videos/MotorControlRecording"     
+
 while True:
     if arduino.in_waiting:
         data = arduino.read()
@@ -521,25 +531,23 @@ while True:
             dragging = False
 
             # Zaber goes up
-            command ="/1 move rel -30000\n"  
+            command ="/1 move rel -65000\n"  
             zaber.write(command.encode())
 
             print("Received:", dragging)
-            time.sleep(0.2)
+            time.sleep(1)
             
         elif data==b'R':
             print("RECU")
 
         elif(data==b'A'):
             arrived=True
-            print("RECEIVED ARRIVED    ",arrived)
 
         elif(data ==b'X'):
                 posX_bytes = arduino.read(4)
 
                 #posX = stepsToX(struct.unpack('l', posX_bytes)[0])
-                print("received X", posX_bytes)
-                posX_temp = stepsToX(struct.unpack('l', posX_bytes)[0])
+                posX_temp = stepsToX(struct.unpack('<l', posX_bytes)[0])
 
                 #Normalement ce truc est inutile mais on ne sait jamais
                 #Je l'ai mis parce que je me suis trompé et j'envoyer l'adresse d'une variable locale
@@ -553,7 +561,7 @@ while True:
                     if(data==b'Y'):
                         posY_bytes = arduino.read(4)
         
-                        posY = stepsToY(struct.unpack('l', posY_bytes)[0])+START_Y
+                        posY = stepsToY(struct.unpack('<l', posY_bytes)[0])+START_Y
                         #print("Received YYYYYYyyy:", posY*659/4)
                     
                 '''
@@ -567,18 +575,24 @@ while True:
     #while(arduino.in_waiting):
         #arduino.read() 
     
+    
     #image = 'python\image'+str(i)+'.jpg'
     #Juste pour avancer moins rapidement 
-    if(k%2==0):
-        image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
-        print("iiiiii    ",i)
-        balls_detection(image)
-        i=i+1
+    
+    #if(k%1000==0):
+    #list_files = glob.glob(os.path.join(folder, '*.jpg'))
+    #image = max(list_files, key=os.path.getctime)
+    #list_files.remove(image)
+    #image = max(list_files, key=os.path.getctime)
+    image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
+    print("iiiiii    ",image)
+    balls_detection(image)
+    i=i+1
 
 
-        if(not dragging):# and not arduino.in_waiting):
-            targetX,targetY,arrived,path, at_rest =  sendTarget(targetX,targetY,posX,posY,arrived,path, at_rest)
-            #ICI DECIDER OU ALLER
-            #time.sleep(0.2)
-            
-    k=k+1
+    if(not dragging):# and not arduino.in_waiting):
+        targetX,targetY,arrived,path, at_rest =  sendTarget(targetX,targetY,posX,posY,arrived,path, at_rest)
+        #ICI DECIDER OU ALLER
+        #time.sleep(0.2)
+        
+    #k=k+1

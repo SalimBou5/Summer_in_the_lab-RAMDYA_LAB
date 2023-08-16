@@ -1,0 +1,48 @@
+Julianne lab meeting
+
+Modelling the VNC with Reinforcement learning
+
+Episodic Encoder Decoder model
+
+VNC = Ventral nerve cord = bottleneck for information
+VNC can encode and decode different behaviours
+
+Reinforcemement learning:
+	Learning from many trials and errors
+	Reward system for model to learn preferred states
+	flexible model to tune to different behaviours
+	avoids overfitting
+
+Before --> encoder decoder --> encode from brain(Big Input) to VNC (small) THEN decode from VNC(small) to limbs(Big output)
+	-->Variational Autoencoders (VAEs) for behaviour cloning
+	--> Supervised learning
+
+---> We want reinforcmengt learning -->The model has to predict off its own prediction
+
+Loss function:
+	--> Exponential decay(0.5^i) weighted loss over rollout episode --> to have first steps correct -->it mimics behaviour more closely, detrends more easily
+	--> reciprocal scaling (1/(i+1)) has more of an averaging effect, less detrending)
+
+Improvement
+--> Tuning time dependent loss function
+-->Recurrent network (RNN, LSTM)
+
+
+------------------------------------------------------
+PPO (Proximal Policy Optimization)
+
+Policy model learns a proba distribution of optimal actions
+Value model learns to predict state advantage ---> used to train policy network
+allows us to define an optimization scheme that is not gradient based
+
+opendatascience.com/reinforcement-learning-with-ppo/
+
+PPO does not work well for 42 joint motor control
+--->continous action space
+--->Lots of joints
+
+Curriculum learning 
+
+Improvement:
+	Imitation learning http://ai.stanford.edu/blog/learning-to-imitate/#:~:text=So%2C%20what%20is%20imitation%20learning,policy%20that%20mimics%20this%20behavior
+	Integrating CPG https://www.epfl.ch/labs/biorob/research/neuromechanical/page-36367-en-html/
