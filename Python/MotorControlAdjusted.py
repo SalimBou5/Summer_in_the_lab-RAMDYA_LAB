@@ -18,10 +18,10 @@ from skimage.feature import peak_local_max
 #-------------------------------------------
 
 #Open the serial port to communicate with the arduino
-arduino = serial.Serial(port='COM19',  baudrate=115200, timeout=.1)
+arduino = serial.Serial(port='/dev/ttyACM0',  baudrate=1000000, timeout=.1)
 
 #Open the serial port to communicate with the Zaber motor
-zaber = serial.Serial(port='COM3', baudrate=115200, timeout=.1)
+zaber = serial.Serial(port='/dev/ttyACM1', baudrate=115200, timeout=.1)
 
 #home the Zaber motor
 command = "/home\n" 
@@ -153,7 +153,7 @@ cv2.imwrite('python\patch.jpg',patch)
 '''
 
 #pattern to be matched (patch)
-patch = imread('patch.jpg')
+patch = imread('/home/matthias/multimaze_recorder/MotorControl/patch.jpg')
 
 '''
     Il y a peut-être juste ça à ajuster
@@ -438,6 +438,7 @@ def dragBack():
 #Function to send the target to the robot
 def sendTarget(x,y,posX,posY,arrived,path, at_rest):
     x_old,y_old = x,y
+    escape =0
     #********************COMPUTER VISION INTERPRETATION*************************
     try:
         x,y,escape,towards_rest=computerVisionInterpretation(x,y,posX,posY)
@@ -584,7 +585,7 @@ while True:
     #image = max(list_files, key=os.path.getctime)
     #list_files.remove(image)
     #image = max(list_files, key=os.path.getctime)
-    image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
+    image = f"magnets/image{i}.jpg"
     print("iiiiii    ",image)
     balls_detection(image)
     i=i+1
