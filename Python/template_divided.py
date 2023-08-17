@@ -27,23 +27,23 @@ patch_x_max=230
 patch_y_min=245
 patch_y_max=275
 
-#fig, ax = plt.subplots(1,2,figsize=(10,10))
+fig, ax = plt.subplots(1,2,figsize=(10,10))
 sample5 = sample[1300:1650, 1520:2050]
-#ax[0].imshow(sample5,cmap='gray')
-#ax[0].add_patch(Rectangle((patch_x_min, patch_y_min), patch_x_max-patch_x_min, patch_y_max-patch_y_min, edgecolor='b', facecolor='none'));
-#ax[0].set_title('Patch Location',fontsize=15)
+ax[0].imshow(sample5,cmap='gray')
+ax[0].add_patch(Rectangle((patch_x_min, patch_y_min), patch_x_max-patch_x_min, patch_y_max-patch_y_min, edgecolor='b', facecolor='none'));
+ax[0].set_title('Patch Location',fontsize=15)
 
 #Showing Patch
-#patch = sample5[patch_y_min:patch_y_max, patch_x_min:patch_x_max]
-#ax[1].imshow(patch,cmap='gray')
-#ax[1].set_title('Patch',fontsize=15)
-#plt.show()
+patch = sample5[patch_y_min:patch_y_max, patch_x_min:patch_x_max]
+ax[1].imshow(patch,cmap='gray')
+ax[1].set_title('Patch',fontsize=15)
+plt.show()
 patch = imread('python\patch.jpg')
 
 #patch = sample[patch_x_min:patch_x_max, patch_y_min:patch_y_max]
 
 
-sample2 = imread('magnets_2\image561.jpg')
+sample2 = imread('magnets_2\image737.jpg')
 
 #fig, ax = plt.subplots(1,2,figsize=(10,10))
 #ax[0].imshow(sample2,cmap='gray')
