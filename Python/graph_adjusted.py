@@ -9,174 +9,176 @@ graph = nx.Graph()
 # Define positions (in pixels) for each node
 positions = {
     # -------colonne1--------
-    1: {'pos': (27, 16), 'col': 1, 'line': 1},
-    2: {'pos': (27, 12.5), 'col': 1, 'line': 2},
-    3: {'pos': (27, 9.2), 'col': 1, 'line': 3},
-    4: {'pos': (27, 5.6), 'col': 1, 'line': 4},
-    5: {'pos': (27, 2.4), 'col': 1, 'line': 5},
+    1: {'pos': (27, 18.6), 'col': 1, 'line': 1},
+    2: {'pos': (27, 15), 'col': 1, 'line': 2},
+    3: {'pos': (27, 11.6), 'col': 1, 'line': 3},
+    4: {'pos': (27, 8), 'col': 1, 'line': 4},
+    5: {'pos': (27, 5), 'col': 1, 'line': 5},
     6: {'pos': (27, 0), 'col': 1, 'line': 6},
     # -------colonne2--------
-    7: {'pos': (26.3, 16), 'col': 2, 'line': 1},
-    8: {'pos': (26.3, 12.5), 'col': 2, 'line': 2},
-    9: {'pos': (26.3, 9.2), 'col': 2, 'line': 3},
-    10: {'pos': (26.3,5.6), 'col': 2, 'line': 4},
-    11: {'pos': (26.3,2.4), 'col': 2, 'line': 5},
-    12: {'pos': (26.3,0), 'col': 2, 'line': 6},
+    7: {'pos': (26.45, 18.6), 'col': 2, 'line': 1},
+    8: {'pos': (26.45, 15), 'col': 2, 'line': 2},
+    9: {'pos': (26.45, 11.6), 'col': 2, 'line': 3},
+    10: {'pos': (26.45,8), 'col': 2, 'line': 4},
+    11: {'pos': (26.45,5), 'col': 2, 'line': 5},
+    12: {'pos': (26.45,0), 'col': 2, 'line': 6},
     # ------colonne3--------
-    13: {'pos': (25.75, 16),  'col': 3, 'line': 1},
-    14: {'pos': (25.75, 12.5), 'col': 3, 'line': 2},
-    15: {'pos': (25.75, 9.2), 'col': 3, 'line': 3},
-    16: {'pos': (25.75, 5.6), 'col': 3, 'line': 4},
-    17: {'pos': (25.75, 2.4), 'col': 3, 'line': 5},
-    18: {'pos': (25.75, 0), 'col': 3, 'line': 6},
+    13: {'pos': (25.9, 18.6),  'col': 3, 'line': 1},
+    14: {'pos': (25.9, 15), 'col': 3, 'line': 2},
+    15: {'pos': (25.9, 11.6), 'col': 3, 'line': 3},
+    16: {'pos': (25.9, 8), 'col': 3, 'line': 4},
+    17: {'pos': (25.9, 5), 'col': 3, 'line': 5},
+    18: {'pos': (25.9, 0), 'col': 3, 'line': 6},
     # -------colonne4--------
-    19: {'pos': (25.2, 16),  'col': 4, 'line': 1},
-    20: {'pos': (25.2, 12.5), 'col': 4, 'line': 2},
-    21: {'pos': (25.2, 9.2), 'col': 4, 'line': 3},
-    22: {'pos': (25.2, 5.6), 'col': 4, 'line': 4},
-    23: {'pos': (25.2, 2.4), 'col': 4, 'line': 5},
-    24: {'pos': (25.2, 0), 'col': 4, 'line': 6},
+    19: {'pos': (25.4, 18.6),  'col': 4, 'line': 1},
+    20: {'pos': (25.4, 15), 'col': 4, 'line': 2},
+    21: {'pos': (25.4, 11.6), 'col': 4, 'line': 3},
+    22: {'pos': (25.4, 8), 'col': 4, 'line': 4},
+    23: {'pos': (25.4, 5), 'col': 4, 'line': 5},
+    24: {'pos': (25.4, 0), 'col': 4, 'line': 6},
     # -------colonne5--------
-    25: {'pos': (24.7, 16),  'col': 5, 'line': 1},
-    26: {'pos': (24.7, 12.5), 'col': 5, 'line': 2},
-    27: {'pos': (24.7, 9.2), 'col': 5, 'line': 3},
-    28: {'pos': (24.7, 5.6), 'col': 5, 'line': 4},
-    29: {'pos': (24.7, 2.4), 'col': 5, 'line': 5},
-    30: {'pos': (24.7, 0), 'col': 5, 'line': 6},
+    25: {'pos': (24.9, 18.6),  'col': 5, 'line': 1},
+    26: {'pos': (24.9, 15), 'col': 5, 'line': 2},
+    27: {'pos': (24.9, 11.6), 'col': 5, 'line': 3},
+    28: {'pos': (24.9, 8), 'col': 5, 'line': 4},
+    29: {'pos': (24.9, 5), 'col': 5, 'line': 5},
+    30: {'pos': (24.9, 0), 'col': 5, 'line': 6},
     # -------colonne6--------
-    31: {'pos': (24.2, 16),  'col': 6, 'line': 1},
-    32: {'pos': (24.2, 12.5), 'col': 6, 'line': 2},
-    33: {'pos': (24.2, 9.2), 'col': 6, 'line': 3},
-    34: {'pos': (24.2, 5.6), 'col': 6, 'line': 4},
-    35: {'pos': (24.2, 2.4), 'col': 6, 'line': 5},
-    36: {'pos': (24.2, 0), 'col': 6, 'line': 6},
+    31: {'pos': (24.4, 18.6),  'col': 6, 'line': 1},
+    32: {'pos': (24.4, 15), 'col': 6, 'line': 2},
+    33: {'pos': (24.4, 11.6), 'col': 6, 'line': 3},
+    34: {'pos': (24.4, 8), 'col': 6, 'line': 4},
+    35: {'pos': (24.4, 5), 'col': 6, 'line': 5},
+    36: {'pos': (24.4, 0), 'col': 6, 'line': 6},
     # -------colonne7--------
-    37: {'pos': (23.65, 16),  'col':   7, 'line': 1},
-    38: {'pos': (23.65, 12.5), 'col':  7, 'line': 2},
-    39: {'pos': (23.65, 9.2), 'col': 7, 'line': 3},
-    40: {'pos': (23.65, 5.6), 'col': 7, 'line': 4},
-    41: {'pos': (23.65, 2.4), 'col': 7, 'line': 5},
-    42: {'pos': (23.65, 0), 'col': 7, 'line': 6},
+    37: {'pos': (23.9, 18.6),  'col':   7, 'line': 1},
+    38: {'pos': (23.9, 15), 'col':  7, 'line': 2},
+    39: {'pos': (23.9, 11.6), 'col': 7, 'line': 3},
+    40: {'pos': (23.9, 8), 'col': 7, 'line': 4},
+    41: {'pos': (23.9, 5), 'col': 7, 'line': 5},
+    42: {'pos': (23.9, 0), 'col': 7, 'line': 6},
     # -------colonne8--------
-    43: {'pos': (23, 16),  'col':   8, 'line': 1},
-    44: {'pos': (23, 12.5), 'col':  8, 'line': 2},
-    45: {'pos': (23, 9.2), 'col': 8, 'line': 3},
-    46: {'pos': (23, 5.6), 'col': 8, 'line': 4},
-    47: {'pos': (23, 2.4), 'col': 8, 'line': 5},
-    48: {'pos': (23, 0), 'col': 8, 'line': 6},
+    43: {'pos': (23.3, 18.6),  'col':   8, 'line': 1},
+    44: {'pos': (23.3, 15), 'col':  8, 'line': 2},
+    45: {'pos': (23.3, 11.6), 'col': 8, 'line': 3},
+    46: {'pos': (23.3, 8), 'col': 8, 'line': 4},
+    47: {'pos': (23.3, 5), 'col': 8, 'line': 5},
+    48: {'pos': (23.3, 0), 'col': 8, 'line': 6},
     # ************************************************************
+
     # -------colonne9--------
-    49: {'pos': (18, 16),  'col':   9, 'line': 1},
-    50: {'pos': (18, 12.5), 'col':  9, 'line': 2},
-    51: {'pos': (18, 9.2), 'col': 9, 'line': 3},
-    52: {'pos': (18, 5.6), 'col': 9, 'line': 4},
-    53: {'pos': (18, 2.4), 'col': 9, 'line': 5},
+    49: {'pos': (18, 18.6),  'col':   9, 'line': 1},
+    50: {'pos': (18, 15), 'col':  9, 'line': 2},
+    51: {'pos': (18, 11.6), 'col': 9, 'line': 3},
+    52: {'pos': (18, 8), 'col': 9, 'line': 4},
+    53: {'pos': (18, 5), 'col': 9, 'line': 5},
     54: {'pos': (18, 0), 'col': 9, 'line': 6},
     # -------colonne10--------
-    55: {'pos': (17.4, 16),  'col':   10, 'line': 1},
-    56: {'pos': (17.4, 12.5), 'col':  10, 'line': 2},
-    57: {'pos': (17.4, 9.2), 'col': 10, 'line': 3},
-    58: {'pos': (17.4, 5.6), 'col': 10, 'line': 4},
-    59: {'pos': (17.4, 2.4), 'col': 10, 'line': 5},
-    60: {'pos': (17.4, 0), 'col': 10, 'line': 6},
+    55: {'pos': (17.5, 18.6),  'col':   10, 'line': 1},
+    56: {'pos': (17.5, 15), 'col':  10, 'line': 2},
+    57: {'pos': (17.5, 11.6), 'col': 10, 'line': 3},
+    58: {'pos': (17.5, 8), 'col': 10, 'line': 4},
+    59: {'pos': (17.5, 5), 'col': 10, 'line': 5},
+    60: {'pos': (17.5, 0), 'col': 10, 'line': 6},
     # -------colonne11--------
-    61: {'pos': (16.8, 16),  'col':   11, 'line': 1},
-    62: {'pos': (16.8, 12.5), 'col':  11, 'line': 2},
-    63: {'pos': (16.8, 9.2), 'col': 11, 'line': 3},
-    64: {'pos': (16.8, 5.6), 'col': 11, 'line': 4},
-    65: {'pos': (16.8, 2.4), 'col': 11, 'line': 5},
-    66: {'pos': (16.8, 0), 'col': 11, 'line': 6},
+    61: {'pos': (17, 18.6),  'col':   11, 'line': 1},
+    62: {'pos': (17, 15), 'col':  11, 'line': 2},
+    63: {'pos': (17, 11.6), 'col': 11, 'line': 3},
+    64: {'pos': (17, 8), 'col': 11, 'line': 4},
+    65: {'pos': (17, 5), 'col': 11, 'line': 5},
+    66: {'pos': (17, 0), 'col': 11, 'line': 6},
     # -------colonne12--------
-    67: {'pos': (16.3, 16),  'col':   12, 'line': 1},
-    68: {'pos': (16.3, 12.5), 'col':  12, 'line': 2},
-    69: {'pos': (16.3, 9.2), 'col': 12, 'line': 3},
-    70: {'pos': (16.3, 5.6), 'col': 12, 'line': 4},
-    71: {'pos': (16.3, 2.4), 'col': 12, 'line': 5},
-    72: {'pos': (16.3, 0), 'col': 12, 'line': 6},
+    67: {'pos': (16.5, 18.6),  'col':   12, 'line': 1},
+    68: {'pos': (16.5, 15), 'col':  12, 'line': 2},
+    69: {'pos': (16.5, 11.6), 'col': 12, 'line': 3},
+    70: {'pos': (16.5, 8), 'col': 12, 'line': 4},
+    71: {'pos': (16.5, 5), 'col': 12, 'line': 5},
+    72: {'pos': (16.5, 0), 'col': 12, 'line': 6},
     # -------colonne13--------
-    73: {'pos': (15.8, 16),  'col':   13, 'line': 1},
-    74: {'pos': (15.8, 12.5), 'col':  13, 'line': 2},
-    75: {'pos': (15.8, 9.2), 'col': 13, 'line': 3},
-    76: {'pos': (15.8, 5.6), 'col': 13, 'line': 4},
-    77: {'pos': (15.8, 2.4), 'col': 13, 'line': 5},
-    78: {'pos': (15.8, 0), 'col': 13, 'line': 6},
+    73: {'pos': (16, 18.6),  'col':   13, 'line': 1},
+    74: {'pos': (16, 15), 'col':  13, 'line': 2},
+    75: {'pos': (16, 11.6), 'col': 13, 'line': 3},
+    76: {'pos': (16, 8), 'col': 13, 'line': 4},
+    77: {'pos': (16, 5), 'col': 13, 'line': 5},
+    78: {'pos': (16, 0), 'col': 13, 'line': 6},
     # -------colonne14--------
-    79: {'pos': (15.3, 16),  'col':   14, 'line': 1},
-    80: {'pos': (15.3, 12.5), 'col':  14, 'line': 2},
-    81: {'pos': (15.3, 9.2), 'col': 14, 'line': 3},
-    82: {'pos': (15.3, 5.6), 'col': 14, 'line': 4},
-    83: {'pos': (15.3, 2.4), 'col': 14, 'line': 5},
-    84: {'pos': (15.3, 0), 'col': 14, 'line': 6},
+    79: {'pos': (15.5, 18.6),  'col':   14, 'line': 1},
+    80: {'pos': (15.5, 15), 'col':  14, 'line': 2},
+    81: {'pos': (15.5, 11.6), 'col': 14, 'line': 3},
+    82: {'pos': (15.5, 8), 'col': 14, 'line': 4},
+    83: {'pos': (15.5, 5), 'col': 14, 'line': 5},
+    84: {'pos': (15.5, 0), 'col': 14, 'line': 6},
     # -------colonne15--------
-    85: {'pos': (14.8, 16),  'col':   15, 'line': 1},
-    86: {'pos': (14.8, 12.5), 'col':  15, 'line': 2},
-    87: {'pos': (14.8, 9.2), 'col': 15, 'line': 3},
-    88: {'pos': (14.8, 5.6), 'col': 15, 'line': 4},
-    89: {'pos': (14.8, 2.4), 'col': 15, 'line': 5},
-    90: {'pos': (14.8, 0), 'col': 15, 'line': 6},
+    85: {'pos': (15, 18.6),  'col':   15, 'line': 1},
+    86: {'pos': (15, 15), 'col':  15, 'line': 2},
+    87: {'pos': (15, 11.6), 'col': 15, 'line': 3},
+    88: {'pos': (15, 8), 'col': 15, 'line': 4},
+    89: {'pos': (15, 5), 'col': 15, 'line': 5},
+    90: {'pos': (15, 0), 'col': 15, 'line': 6},
     # -------colonne16--------
-    91: {'pos': (14, 16),  'col':   16, 'line': 1},
-    92: {'pos': (14, 12.5), 'col':  16, 'line': 2},
-    93: {'pos': (14, 9.2), 'col': 16, 'line': 3},
-    94: {'pos': (14, 5.6), 'col': 16, 'line': 4},
-    95: {'pos': (14, 2.4), 'col': 16, 'line': 5},
-    96: {'pos': (14, 0),   'col': 16, 'line': 6},
+    91: {'pos': (14.5, 18.6),  'col':   16, 'line': 1},
+    92: {'pos': (14.5, 15), 'col':  16, 'line': 2},
+    93: {'pos': (14.5, 11.6), 'col': 16, 'line': 3},
+    94: {'pos': (14.5, 8), 'col': 16, 'line': 4},
+    95: {'pos': (14.5, 5), 'col': 16, 'line': 5},
+    96: {'pos': (14.5, 0),   'col': 16, 'line': 6},
     # *******************************************
+
     # -------colonne17--------
-    97: {'pos': (9, 16),  'col':   17, 'line': 1},
-    98: {'pos': (9, 12.5), 'col':  17, 'line': 2},
-    99: {'pos': (9, 9.2), 'col': 17, 'line': 3},
-    100: {'pos': (9,5.6), 'col': 17, 'line': 4},
-    101: {'pos': (9,2.4), 'col': 17, 'line': 5},
-    102: {'pos': (9,0),  'col': 17, 'line': 6},
+    97: {'pos': (9.5, 18.6),  'col':   17, 'line': 1},
+    98: {'pos': (9.5, 15), 'col':  17, 'line': 2},
+    99: {'pos': (9.5, 11.6), 'col': 17, 'line': 3},
+    100: {'pos': (9.5,8), 'col': 17, 'line': 4},
+    101: {'pos': (9.5,5), 'col': 17, 'line': 5},
+    102: {'pos': (9.5,0),  'col': 17, 'line': 6},
     # -------colonne18--------
-    103: {'pos': (8.4, 16),   'col':   18, 'line': 1},
-    104: {'pos': (8.4, 12.5), 'col':  18, 'line': 2},
-    105: {'pos': (8.4, 9.2),  'col': 18, 'line': 3},
-    106: {'pos': (8.4, 5.6),  'col': 18, 'line': 4},
-    107: {'pos': (8.4, 2.4),  'col': 18, 'line': 5},
-    108: {'pos': (8.4, 0),    'col': 18, 'line': 6},
+    103: {'pos': (8.7, 18.6),   'col':   18, 'line': 1},
+    104: {'pos': (8.7, 15), 'col':  18, 'line': 2},
+    105: {'pos': (8.7, 11.6),  'col': 18, 'line': 3},
+    106: {'pos': (8.7, 8),  'col': 18, 'line': 4},
+    107: {'pos': (8.7, 5),  'col': 18, 'line': 5},
+    108: {'pos': (8.7, 0),    'col': 18, 'line': 6},
     # -------colonne19--------
-    109: {'pos': (7.9, 16),   'col':   19, 'line': 1},
-    110: {'pos': (7.9, 12.5), 'col':  19, 'line': 2},
-    111: {'pos': (7.9, 9.2),  'col': 19, 'line': 3},
-    112: {'pos': (7.9, 5.6),  'col': 19, 'line': 4},
-    113: {'pos': (7.9, 2.4),  'col': 19, 'line': 5},
-    114: {'pos': (7.9, 0),    'col': 19, 'line': 6},
+    109: {'pos': (8.2, 18.6),   'col':   19, 'line': 1},
+    110: {'pos': (8.2, 15), 'col':  19, 'line': 2},
+    111: {'pos': (8.2, 11.6),  'col': 19, 'line': 3},
+    112: {'pos': (8.2, 8),  'col': 19, 'line': 4},
+    113: {'pos': (8.2, 5),  'col': 19, 'line': 5},
+    114: {'pos': (8.2, 0),    'col': 19, 'line': 6},
     # -------colonne20--------
-    115: {'pos': (7.4, 16),   'col':   20, 'line': 1},
-    116: {'pos': (7.4, 12.5), 'col':  20, 'line': 2},
-    117: {'pos': (7.4, 9.2),  'col': 20, 'line': 3},
-    118: {'pos': (7.4, 5.6),  'col': 20, 'line': 4},
-    119: {'pos': (7.4, 2.4),  'col': 20, 'line': 5},
-    120: {'pos': (7.4, 0),    'col': 20, 'line': 6},
+    115: {'pos': (7.7, 18.6),   'col':   20, 'line': 1},
+    116: {'pos': (7.7, 15), 'col':  20, 'line': 2},
+    117: {'pos': (7.7, 11.6),  'col': 20, 'line': 3},
+    118: {'pos': (7.7, 8),  'col': 20, 'line': 4},
+    119: {'pos': (7.7, 5),  'col': 20, 'line': 5},
+    120: {'pos': (7.7, 0),    'col': 20, 'line': 6},
     # -------colonne21--------
-    121: {'pos': (6.9, 16),   'col':   21, 'line': 1},
-    122: {'pos': (6.9, 12.5), 'col':  21, 'line': 2},
-    123: {'pos': (6.9, 9.2),  'col': 21, 'line': 3},
-    124: {'pos': (6.9, 5.6),  'col': 21, 'line': 4},
-    125: {'pos': (6.9, 2.4),  'col': 21, 'line': 5},
-    126: {'pos': (6.9, 0),    'col': 21, 'line': 6},
+    121: {'pos': (7.1, 18.6),   'col':   21, 'line': 1},
+    122: {'pos': (7.1, 15), 'col':  21, 'line': 2},
+    123: {'pos': (7.1, 11.6),  'col': 21, 'line': 3},
+    124: {'pos': (7.1, 8),  'col': 21, 'line': 4},
+    125: {'pos': (7.1, 5),  'col': 21, 'line': 5},
+    126: {'pos': (7.1, 0),    'col': 21, 'line': 6},
     # -------colonne22--------
-    127: {'pos': (6.4, 16),   'col':   22, 'line': 1},
-    128: {'pos': (6.4, 12.5), 'col':  22, 'line': 2},
-    129: {'pos': (6.4, 9.2),  'col': 22, 'line': 3},
-    130: {'pos': (6.4, 5.6),  'col': 22, 'line': 4},
-    131: {'pos': (6.4, 2.4),  'col': 22, 'line': 5},
-    132: {'pos': (6.4, 0),    'col': 22, 'line': 6},
+    127: {'pos': (6.6, 18.6),   'col':   22, 'line': 1},
+    128: {'pos': (6.6, 15), 'col':  22, 'line': 2},
+    129: {'pos': (6.6, 11.6),  'col': 22, 'line': 3},
+    130: {'pos': (6.6, 8),  'col': 22, 'line': 4},
+    131: {'pos': (6.6, 5),  'col': 22, 'line': 5},
+    132: {'pos': (6.6, 0),    'col': 22, 'line': 6},
     # -------colonne23--------
-    133: {'pos': (5.9, 16),   'col':  23, 'line': 1},
-    134: {'pos': (5.9, 12.5), 'col': 23, 'line': 2},
-    135: {'pos': (5.9, 9.2),  'col':23, 'line': 3},
-    136: {'pos': (5.9, 5.6),  'col':23, 'line': 4},
-    137: {'pos': (5.9, 2.4),  'col':23, 'line': 5},
-    138: {'pos': (5.9, 0),    'col':23, 'line': 6},
+    133: {'pos': (6.1, 18.6),   'col':  23, 'line': 1},
+    134: {'pos': (6.1, 15), 'col': 23, 'line': 2},
+    135: {'pos': (6.1, 11.6),  'col':23, 'line': 3},
+    136: {'pos': (6.1, 8),  'col':23, 'line': 4},
+    137: {'pos': (6.1, 5),  'col':23, 'line': 5},
+    138: {'pos': (6.1, 0),    'col':23, 'line': 6},
     # -------colonne24--------
-    139: {'pos': (5, 16),   'col':  24, 'line': 1},
-    140: {'pos': (5, 12.5), 'col': 24, 'line': 2},
-    141: {'pos': (5, 9.2),  'col':24, 'line': 3},
-    142: {'pos': (5, 5.6),  'col':24, 'line': 4},
-    143: {'pos': (5, 2.4),  'col':24, 'line': 5},
+    139: {'pos': (5, 18.6),   'col':  24, 'line': 1},
+    140: {'pos': (5, 15), 'col': 24, 'line': 2},
+    141: {'pos': (5, 11.6),  'col':24, 'line': 3},
+    142: {'pos': (5, 8),  'col':24, 'line': 4},
+    143: {'pos': (5, 5),  'col':24, 'line': 5},
     144: {'pos': (5, 0),    'col':24, 'line': 6},
     # *********************************************
 
@@ -188,48 +190,48 @@ EN CHANGEANT REST_X NE PAS OUBLIER DE CHANGER LA VALEUR DES COL
 '''
 # ---------------REST POSITIONS----------------
 rest_positions = {
-    # -------colonne r4--------
-    145: {'pos': (4, 16),   'col':  "r4", 'line': 1},
-    146: {'pos': (4, 12.5), 'col': "r4", 'line': 2},
-    147: {'pos': (4, 9.2),  'col':"r4", 'line': 3},
-    148: {'pos': (4, 5.6),  'col':"r4", 'line': 4},
-    149: {'pos': (4, 2.4),  'col':"r4", 'line': 5},
-    150: {'pos': (4, 0),    'col':"r4", 'line': 6},
-    # -------colonne r10--------
-    151: {'pos': (10, 16),   'col':  "r10", 'line': 1},
-    152: {'pos': (10, 12.5), 'col': "r10", 'line': 2},
-    153: {'pos': (10, 9.2),  'col':"r10", 'line': 3},
-    154: {'pos': (10, 5.6),  'col':"r10", 'line': 4},
-    155: {'pos': (10, 2.4),  'col':"r10", 'line': 5},
-    156: {'pos': (10, 0),    'col':"r10", 'line': 6},
-    # -------colonne r13--------
-    157: {'pos': (13, 16),   'col':  "r13", 'line': 1},
-    158: {'pos': (13, 12.5), 'col': "r13", 'line': 2},
-    159: {'pos': (13, 9.2),  'col':"r13", 'line': 3},
-    160: {'pos': (13, 5.6),  'col':"r13", 'line': 4},
-    161: {'pos': (13, 2.4),  'col':"r13", 'line': 5},
-    162: {'pos': (13, 0),    'col':"r13", 'line': 6},
-    # -------colonne r19--------
-    163: {'pos': (19, 16),   'col':  "r19", 'line': 1},
-    164: {'pos': (19, 12.5), 'col': "r19", 'line': 2},
-    165: {'pos': (19, 9.2),  'col':"r19", 'line': 3},
-    166: {'pos': (19, 5.6),  'col':"r19", 'line': 4},
-    167: {'pos': (19, 2.4),  'col':"r19", 'line': 5},
-    168: {'pos': (19, 0),    'col':"r19", 'line': 6},
-    # -------colonne r23--------
-    169: {'pos': (22, 16),   'col':  "r22", 'line': 1},
-    170: {'pos': (22, 12.5), 'col': "r22", 'line': 2},
-    171: {'pos': (22, 9.2),  'col':"r22", 'line': 3},
-    172: {'pos': (22, 5.6),  'col':"r22", 'line': 4},
-    173: {'pos': (22, 2.4),  'col':"r22", 'line': 5},
-    174: {'pos': (22, 0),    'col':"r22", 'line': 6},
     # -------colonne r28--------
-    175: {'pos': (28, 16),   'col':  "r28", 'line': 1},
-    176: {'pos': (28, 12.5), 'col': "r28", 'line': 2},
-    177: {'pos': (28, 9.2),  'col':"r28", 'line': 3},
-    178: {'pos': (28, 5.6),  'col':"r28", 'line': 4},
-    179: {'pos': (28, 2.4),  'col':"r28", 'line': 5},
-    180: {'pos': (28, 0),    'col':"r28", 'line': 6},
+    145: {'pos': (28, 18.6),   'col':  "r28", 'line': 1},
+    146: {'pos': (28, 15), 'col': "r28", 'line': 2}, 
+    147: {'pos': (28, 11.6),  'col':"r28", 'line': 3},
+    148: {'pos': (28, 8),  'col':"r28", 'line': 4},
+    149: {'pos': (28, 5),  'col':"r28", 'line': 5},
+    150: {'pos': (28, 0),    'col':"r28", 'line': 6},
+    # -------colonne r10--------
+    151: {'pos': (22, 18.6),   'col':  "r22", 'line': 1},
+    152: {'pos': (22, 15), 'col': "r22", 'line': 2},
+    153: {'pos': (22, 11.6),  'col':"r22", 'line': 3},
+    154: {'pos': (22, 8),  'col':"r22", 'line': 4},
+    155: {'pos': (22, 5),  'col':"r22", 'line': 5},
+    156: {'pos': (22, 0),    'col':"r22", 'line': 6},
+    # -------colonne r19--------
+    157: {'pos': (19, 18.6),   'col':  "r19", 'line': 1},
+    158: {'pos': (19, 15), 'col': "r19", 'line': 2},
+    159: {'pos': (19, 11.6),  'col':"r19", 'line': 3},
+    160: {'pos': (19, 8),  'col':"r19", 'line': 4},
+    161: {'pos': (19, 5),  'col':"r19", 'line': 5},
+    162: {'pos': (19, 0),    'col':"r19", 'line': 6},
+    # -------colonne r13--------
+    163: {'pos': (13, 18.6),   'col':  "r13", 'line': 1},
+    164: {'pos': (13, 15), 'col': "r13", 'line': 2},
+    165: {'pos': (13, 11.6),  'col':"r13", 'line': 3},
+    166: {'pos': (13, 8),  'col':"r13", 'line': 4},
+    167: {'pos': (13, 5),  'col':"r13", 'line': 5},
+    168: {'pos': (13, 0),    'col':"r13", 'line': 6},
+    # -------colonne r11--------
+    169: {'pos': (11, 18.6),   'col':  "r11", 'line': 1},
+    170: {'pos': (11, 15), 'col': "r11", 'line': 2},
+    171: {'pos': (11, 11.6),  'col':"r11", 'line': 3},
+    172: {'pos': (11, 8),  'col':"r11", 'line': 4},
+    173: {'pos': (11, 5),  'col':"r11", 'line': 5},
+    174: {'pos': (11, 0),    'col':"r11", 'line': 6},
+    # -------colonne r4--------
+    175: {'pos': (4, 18.6),   'col':  "r4", 'line': 1},
+    176: {'pos': (4, 15), 'col': "r4", 'line': 2},
+    177: {'pos': (4, 11.6),  'col':"r4", 'line': 3},
+    178: {'pos': (4, 8),  'col':"r4", 'line': 4},
+    179: {'pos': (4, 5),  'col':"r4", 'line': 5},
+    180: {'pos': (4, 0),    'col':"r4", 'line': 6},
 }
 
 '''
@@ -313,7 +315,7 @@ linkLine(4, 1.4)
 # ------Line5---------
 linkLine(5, 1.4)
 # ------Line6---------
-linkLine(6,0.6)
+linkLine(6,0.75)
 # ------Line1---------
 linkLine(49, 1.6)
 # ------Line2---------
@@ -325,7 +327,7 @@ linkLine(52, 1.4)
 # ------Line5---------
 linkLine(53, 1.4)
 # ------Line6---------
-linkLine(54,0.6)
+linkLine(54,0.75)
 # ------Line1---------
 linkLine(97, 1.6)
 # ------Line2---------
@@ -335,20 +337,20 @@ linkLine(99, 1.4)
 # ------Line4---------
 linkLine(100, 1.4)
 # ------Line5---------
-linkLine(101, 1.5)
+linkLine(101, 1.4)
 # ------Line6---------
-linkLine(102,0.6)
+linkLine(102,0.75)
 
 
 # -------------------LinkRest--------------------
 
 #Add edges from the rest positions at the far left to the first column
-addEdge(145,1) # When I am at the edge, I prefer to go laterally when I am just above the final destination
-addEdge(146,2,0.8)
-addEdge(147,3) # When I am at the edge, I prefer to go laterally when I am just above the final destination
-addEdge(148,4,0.8)
-addEdge(149,5) # When I am at the edge, I prefer to go laterally when I am just above the final destination
-addEdge(150,6,0.8)
+addEdge(145,1,0.8) # When I am at the edge, I prefer to go laterally when I am just above the final destination
+addEdge(146,2)
+addEdge(147,3,0.8) # When I am at the edge, I prefer to go laterally when I am just above the final destination
+addEdge(148,4)
+addEdge(149,5,0.8) # When I am at the edge, I prefer to go laterally when I am just above the final destination
+addEdge(150,6)
 
 #Link the edges of the rest positions that are between the arenas to the corresponding column
 linkLineRest(151, 43)
@@ -365,19 +367,19 @@ linkLineRest(167, 95)
 linkLineRest(168, 96)
 
 #Add edges from the rest positions at the far right to the last column
-addEdge(175,121) # When I am at the edge, I prefer to go laterally when I am just above the final destination
-addEdge(176,122,0.8)
-addEdge(177,123) # When I am at the edge, I prefer to go laterally when I am just above the final destination
-addEdge(178,124,0.8)
-addEdge(179,125) # When I am at the edge, I prefer to go laterally when I am just above the final destination
-addEdge(180,126,0.8)
+addEdge(175,139,0.8) # When I am at the edge, I prefer to go laterally when I am just above the final destination
+addEdge(176,140)
+addEdge(177,141,0.8) # When I am at the edge, I prefer to go laterally when I am just above the final destination
+addEdge(178,142)
+addEdge(179,143,0.8) # When I am at the edge, I prefer to go laterally when I am just above the final destination
+addEdge(180,144)
 
-linkCol(145,0.95) # I prefer to move on the far left --> BUT CHECK !!!!!!!!
+linkCol(145,0.9) # I prefer to move on the far left --> BUT CHECK !!!!!!!!
 linkCol(151)
 linkCol(157)
 linkCol(163)
 linkCol(169)
-linkCol(175,0.95) # I prefer to move on the far right --> BUT CHECK !!!!!!!!
+linkCol(175,0.9) # I prefer to move on the far right --> BUT CHECK !!!!!!!!
 
 
 THRESHOLD_EXISTS_AT_POSITION = 0.01
@@ -580,7 +582,7 @@ def getNodePosition(node):
 
 #print(shortest_path([1,123],[8,650]))
 #print(getNodePosition(46))
-#plotGraph()
+plotGraph()
 
 
 
