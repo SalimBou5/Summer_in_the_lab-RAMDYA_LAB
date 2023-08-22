@@ -10,7 +10,8 @@ import cv2
 
 
 # Open the video file
-video_path = 'show.webm'
+# Define the video file path
+video_path = '/home/matthias/Videos/Screencasts/showcase.webm'
 cap = cv2.VideoCapture(video_path)
 
 # Get the video's frame dimensions
@@ -36,7 +37,7 @@ patch_y_max=275
 
 
 
-patch = imread('python\patch.jpg',as_gray=True)
+patch = imread('patch.jpg',as_gray=True)
 
 #patch = sample[patch_x_min:patch_x_max, patch_y_min:patch_y_max]
 
@@ -50,22 +51,32 @@ patch = imread('python\patch.jpg',as_gray=True)
 
 frame_count = 0
 
+
+import os
+import glob
+folder = f"magnets"
+i=516
 # Loop through the video frames and extract them
 while True:
     ret, frame = cap.read()
     if not ret:
         break
+    
 
-    frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    frame1 = imread(folder+f"/image{i}.jpg")
+    i+=1
+    frame2=cv2.cvtColor(frame1, cv2.COLOR_GRAY2BGR)
+    #frame1 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     print(frame.shape)
 
     # Resize the frame to the desired size
-    resized_frame = cv2.resize(frame1, (desired_width, desired_height))
+    #resized_frame = cv2.resize(frame1, (desired_width, desired_height))
     # Save the resized frame
-    frame_filename = f'frame_{frame_count:04d}.jpg'  # You can adjust the filename format
+    #frame_filename = f'frame_{frame_count:04d}.jpg'  # You can adjust the filename format
     frame_count += 1
 
-    cv2.imwrite(frame_filename, resized_frame)
+    #cv2.imwrite(frame_filename, resized_frame)
 
     for region in divide_regions:
         #ax[0].set_title('Grayscale',fontsize=15)
@@ -73,7 +84,8 @@ while True:
         a=[]
 
         y_min, y_max, x_min, x_max = region
-        sample_div = resized_frame[x_min:x_max, y_min:y_max]
+        print(region," ---------------  ")
+        sample_div = frame1[x_min:x_max, y_min:y_max]
 
         #fig, ax = plt.subplots(1,2,figsize=(10,10))
         #ax[0].imshow(sample_div,cmap='gray')
@@ -83,10 +95,13 @@ while True:
 
         patch_width, patch_height = patch.shape
         for x, y in peak_local_max(sample_mt, threshold_abs=0.75):
-            cv2.rectangle(frame, ((y+y_min)*639//desired_width, (x+x_min)*483//desired_height), ((y+y_min+patch_width)*639//desired_width, (x+x_min+patch_height)*483//desired_height), (0, 0, 255), 2)
+            cv2.rectangle(frame2, ((y+y_min), (x+x_min)), ((y+y_min+patch_width), (x+x_min+patch_height)),(0,0,255), 2)
 
     # Display the frame with rectangles
-    cv2.imshow("bu",frame)
+    resized_frame = cv2.resize(frame2, (800, 800))
+
+    cv2.imshow("bu",resized_frame)
+
     # Press 'q' to exit the loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

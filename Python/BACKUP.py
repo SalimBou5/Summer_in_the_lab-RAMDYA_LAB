@@ -3,6 +3,8 @@ import time
 import math
 import struct
 
+import cv2
+
 #from inputimeout import inputimeout
 
 import graph_adjusted as graph
@@ -28,7 +30,7 @@ zaber = serial.Serial(port='/dev/ttyACM1', baudrate=115200, timeout=.1)
 command = "/home\n" 
 zaber.write(command.encode())
 time.sleep(3)
-command="/move abs 450000\n"
+command="/move abs 350000\n"
 zaber.write(command.encode())
 
 time.sleep(3)
@@ -57,23 +59,23 @@ dragging=False
 
 
 BALLS_DESTINATION = [
-    [[71,195, [26.45,  18.2]],[154,195,[25.9, 18.2]],[245,195,[25.4, 18.2]],[327,195,[24.9, 18.2]],[417,195,[24.4, 18.2]],[500,195,[23.9, 18.2]]], #top-left
+    [[71,195, [26.49,  18.6]],[154,195,[25.91, 18.6]],[245,195,[25.34, 18.6]],[327,195,[24.74, 18.6]],[417,195,[24.27, 18.6]],[500,195,[23.57, 18.6]]], #top-left
     
-    [[1565,195,[17.5, 18.2]],[1650,195,[17, 18.2]],[1735,195,[16.5, 18.2]],[1820,195,[16, 18.2]],[1913,195,[15.5, 18.2]],[2000,195,[15, 18.2]]], #top_middle   
+    [[1565,195,[17.57, 18.7]],[1650,195,[16.85, 18.7]],[1735,195,[16.3, 18.7]],[1820,195,[15.81, 18.7]],[1913,195,[15.3, 18.7]],[2000,195,[14.7, 18.7]]], #top_middle  
     
-    [[3057,190,[8.7, 18.2]],[3143,190,[8.2, 18.2]],[3230,190, [7.7,  18.2]],[3315,190, [7.1, 18.2]],[3407,190, [6.6,  18.2]],[3492,190,[6.1, 18.2]]], #top_right 11.15 + 7.15
+    [[3057,190,[8.45, 18.8]],[3143,190,[7.85, 18.8]],[3230,190, [7.3,  18.8]],[3315,190, [6.8, 18.8]],[3407,190, [6.25,  18.8]],[3492,190,[5.75, 18.8]]], #top_right  
     
-    [[71,1350,[26.45,  11.15]],[154,1350,[25.9, 11.15]],[245,1350,[25.4, 11.15]],[327,1350,[24.9, 11.15]],[417,1350,[24.4, 11.15]],[500,1350,[23.9,  11.15]]], #middle_left
+    [[71,1350,[26.49,  11.7]],[154,1350,[25.91, 11.7]],[245,1350,[25.34, 11.7]],[327,1350,[24.74, 11.7]],[417,1350,[24.27, 11.7]],[500,1350,[23.57,  11.7]]], #middle_left
     
-    [[1565,1350,[17.5, 11.15]],[1650,1350,[17, 11.15]],[1735,1350,[16.5, 11.15]],[1820,1350,[16, 11.15]],[1913,1350,[15.5, 11.15]],[2000,1350, [15,  11.15]]], #middle_middle
+    [[1565,1350,[17.57, 11.8]],[1650,1350,[16.85, 11.8]],[1735,1350,[16.3, 11.8]],[1820,1350,[15.81, 11.8]],[1913,1350,[15.3, 11.8]],[2000,1350, [14.7,  11.8]]], #middle_middle
     
-    [[3057,1350, [8.7,  11.15]],[3143,1350, [8.2,  11.15]],[3230,1350, [7.7,  11.15]],[3315,1350, [7.1, 11.15]] ,[3407,1350, [6.6,  11.15]],[3492,1350,[6.1, 11.15]]], #middle_right 4.4 + 6.75
+    [[3057,1350, [8.45,  11.9]],[3143,1350, [7.85,  11.9]],[3230,1350, [7.3,  11.9]],[3315,1350, [6.8, 11.9]] ,[3407,1350, [6.25,  11.9]],[3492,1350,[5.75, 11.9]]], #middle_right 5 + 6.7
     
-    [[71,2508,[26.45, 4.4]],   [154,2508,[25.9,4.4]], [245,2508,[25.4,4.4]], [327,2508,[24.9,4.4]], [417,2508,[24.4,4.4]], [500,2508,[23.9,4.4]]], #bottom_left 17.5 + 6.4
+    [[71,2508,[26.49, 4.7]],   [154,2508,[25.91, 4.7]], [245,2508,[25.34, 4.7]], [327,2508,[24.74, 4.7]], [417,2508,[24.27, 4.7]], [500,2508,[23.57, 4.7]]], #bottom_left 17.25 + 6.4
     
-    [[1565,2508,[17.5,4.4]],[1650,2508,[17,4.4]],[1735,2508,[16.5,4.4]],[1820,2508,[16,4.4]],[1913,2508,[15.5,4.4]],[2000,2508, [15,4.4]]], #bottom_middle 8.1 + 6.3
+    [[1565,2508,[17.57, 4.8]],[1650,2508,[16.85, 4.8]],[1735,2508,[16.3, 4.8]],[1820,2508,[15.81, 4.8]],[1913,2508,[15.3, 4.8]],[2000,2508, [14.7, 4.8]]], #bottom_middle 8.25 + 6.5
     
-    [[3057,2508,[8.7,4.4]],[3143,2508,[8.2,4.4]],[3230,2508, [7.7, 4.4]],[3315,2508, [7.1,4.4]],[3407,2508, [6.6, 4.4]],[3492,2508,[6.1,4.4]]] #bottom_right
+    [[3057,2508,[8.45, 4.9]],[3143,2508,[7.85, 4.9]],[3230,2508, [7.3, 4.9]],[3315,2508, [6.8, 4.9]],[3407,2508, [6.25, 4.9]],[3492,2508,[5.75, 4.9]]] #bottom_right
 ]
 
 ########## EVIDEMMENT CHANGER ###########
@@ -210,27 +212,7 @@ def balls_detection(image):
                 #Check if a ball reached a destination
                 for dest in BALLS_DESTINATION[i]:
                     #If a ball reached a destination, append the list balls_ready
-                    if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):
-                        '''
-                            SUR LE VRAI SETUP, HARDCODER LES DESTINATIONS DES BALLES EN CM
-                        '''
-                        x_cm=convertPixelsToCm(dest[0])
-                        y_cm=convertPixelsToCm(dest[1])
-
-                        
-
-                        '''
-                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        !!!!!!!!!!! ENLEVER !!!!!!!!!!!
-                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        '''
-                        #dest[0] = 6226256
-                        dest[1] = 45665945
-                        '''
-                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        !!!!!!!!!!! ENLEVER !!!!!!!!!!!
-                        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        '''
+                    if closeEnough(dest[0],x,THRESHOLD_DETECTION_READY) and closeEnough(dest[1], y,THRESHOLD_DETECTION_READY):                     
                         try:
                             if not dest[2] in balls_ready:
                                 balls_ready.append(dest[2])
@@ -244,7 +226,9 @@ def balls_detection(image):
                                 fc='none')
                     ax[1].add_patch(rect)
                     '''
+
     #plt.show()
+
 
 
 #-------------------------SEND TARGET----------------------------
@@ -290,7 +274,7 @@ def find_nearest_X(array, XA):
     return nearest_X
 
 #******INTERPRETATION OF COMPUTER VISION****
-def computerVisionInterpretation(x,y,posX,posY):
+def computerVisionInterpretation(x,y,posX,posY,path):
     towards_rest = False
     if len(balls_ready) :
         '''
@@ -300,13 +284,14 @@ def computerVisionInterpretation(x,y,posX,posY):
         '''
         #Determine the closest ball_ready to the magnet --> Goal
         x,y = find_nearest_point(balls_ready,posX,posY) 
-        
+
         print("check dumm  ",x,"   ",y)
         print("check dumm  22  ",posX,"   ",posY)
 
         #If the goal is close enough to the magnet, then trigger drag_back 
         # and remove the ball from the list balls_ready 
         if closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
+            path = []
             escape = 1
             balls_ready.remove([x,y])
             print("CLOSE")
@@ -325,7 +310,7 @@ def computerVisionInterpretation(x,y,posX,posY):
         print("x = ",x,"  y = ",y)
         towards_rest = True
 
-    return x,y,escape,towards_rest
+    return x,y,escape,path,towards_rest
 
 def goalReached(x, y, arrived, path, towards_rest):
     '''
@@ -339,7 +324,10 @@ def goalReached(x, y, arrived, path, towards_rest):
     
     at_rest = False
 
+    print(path)
+    
     if(size_path > 1):  #New target = first node of the shortest path
+        print("hahhh")
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         data = f"{escape},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n" 
         arrived = False   
@@ -349,6 +337,7 @@ def goalReached(x, y, arrived, path, towards_rest):
         #print("pos  ",posX,"   ",posY)
 
     elif (size_path == 1): #Go directly towards the goal
+        print("gvhbhj")
         #print("else  x  y   ",x,"   ",y)
         #print("else  pos  ",posX,"   ",posY)
         data = f"{ESCAPE},{convertXtoSteps(x-START_X)},{convertYtoSteps(y-START_Y)}\n" 
@@ -360,6 +349,9 @@ def goalReached(x, y, arrived, path, towards_rest):
         # If we were going towards rest and we reached the final destination, we are actually at rest
         if towards_rest:
             at_rest = True
+        #TROUVER UNE SOLUTION POUR LE CAS OU ON EST ARRIVE A DESTINATION ET QU'ON EST PAS EN REST
+            #NORMALEMENT ON DEVRAIT JAMAIS AVOIR UN PATH VIDE SANS ÊTRE EN REST
+            #SAUF SI ON A PAS BOUGE LA BALLE (COMPRENDRE POURQUOI? + TRADUIRE CA EN CONDITION + GERER CE PROBLEME)
         print("IN REST")
 
         '''
@@ -367,14 +359,12 @@ def goalReached(x, y, arrived, path, towards_rest):
             ENLEVER
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         '''
-        time.sleep(2)
-        BALLS_DESTINATION[4]=[[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]] #middle_middle
+        #BALLS_DESTINATION[4]=[[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]] #middle_middle
         '''
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ENLEVER
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         '''
-
     arduino.write(data.encode())  # Encode and send the data to the Arduino
 
     return arrived,path, at_rest
@@ -400,7 +390,7 @@ def setNewGoal(x, y, posX, posY, path, towards_rest, at_rest):
     realTargetX = 0
     realTargetY = 0
     path_size = len(path)
-
+    print("path ",path)
     if path_size > 1:  #New target = first node of the shortest path
         print("path", path)
         realTargetX, realTargetY = graph.getNodePosition(path[0])
@@ -424,7 +414,8 @@ def dragBack():
     '''
     ESCAPE = 1
     # Zaber goes down
-    command ="/1 move rel 30000\n"  
+    command ="/1 move rel 85000\n"
+    print("ZZZZZZZZZZAAAAAAAAAAABBEEEEERRRRR         BACK")
     zaber.write(command.encode())
     data = f"{ESCAPE}\n"
     arduino.write(data.encode())  # Encode and send the data
@@ -436,7 +427,7 @@ def sendTarget(x,y,posX,posY,arrived,path, at_rest):
 
     #********************COMPUTER VISION INTERPRETATION*************************
     try:
-        x,y,escape,towards_rest=computerVisionInterpretation(x,y,posX,posY)
+        x,y,escape,path,towards_rest=computerVisionInterpretation(x,y,posX,posY,path)
     except Exception:
         print("EXCEPTION 0")
         return x_old,y_old,arrived,path, at_rest
@@ -484,6 +475,7 @@ def sendTarget(x,y,posX,posY,arrived,path, at_rest):
         #-----------------TRIGGER DRAG BACK--------------
         else: 
             dragBack()
+            path = []
             
     except ValueError:
         print("WRONG INPUT")
@@ -526,7 +518,8 @@ while True:
             dragging = False
 
             # Zaber goes up
-            command ="/1 move rel -30000\n"  
+            command ="/1 move rel -85000\n"  
+            print("ZZZZZZZZZZAAAAAAAAAAABBEEEEERRRRR")
             zaber.write(command.encode())
 
             print("Received:", dragging)
@@ -573,21 +566,25 @@ while True:
     
     #image = 'python\image'+str(i)+'.jpg'
     #Juste pour avancer moins rapidement 
-    if(k%1000000==0):
+    if(k%5000==0):
 
 
 
         if(not dragging):# and not arduino.in_waiting):
-            #list_files = glob.glob(os.path.join(folder, '*.jpg'))
-            #image = max(list_files, key=os.path.getctime)
-            #list_files.remove(image)
-            #image = max(list_files, key=os.path.getctime)
-            image = f"magnets/image{i}.jpg"
-            #image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
-            print("iiiiii    ",image)
-            balls_detection(image)
-            i=i+1
-            targetX,targetY,arrived,path, at_rest =  sendTarget(targetX,targetY,posX,posY,arrived,path, at_rest)
+            try:    
+                list_files = glob.glob(os.path.join(folder, '*.jpg'))
+                image = max(list_files, key=os.path.getctime)
+                list_files.remove(image)
+                image = max(list_files, key=os.path.getctime)
+                #image = f"magnets/image{i}.jpg"
+                #image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
+                print("iiiiii    ",image)
+                balls_detection(image)
+                i=i+1
+                targetX,targetY,arrived,path, at_rest =  sendTarget(targetX,targetY,posX,posY,arrived,path, at_rest)
+                time.sleep(0.1)
+            except:
+                print("Wrong image")
             #ICI DECIDER OU ALLER
             #time.sleep(0.2)
             
