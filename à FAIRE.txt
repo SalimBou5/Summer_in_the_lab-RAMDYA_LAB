@@ -1,0 +1,48 @@
+remove argument "node" from "computerVisionInterpretation"
+check if path = [] is needed in "computerVisionInterpretation"
+
+mettre dragBack directement dans :
+   if closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):	
+        path = []   # !!!!! CHECK IF NEEDED !!!!!!
+        balls_ready.remove(node)
+        print("CLOSE")
+	zaberDragging = dragBack(zaberDragging)
+  .....
+  return node, zaberDragging, !!!! path !!!!
+
+remove         
+	#If the magnet is far from the ball, allow it to move towards it
+        else: 
+            escape = ESCAPE_GOAL
+	.....
+	    escape = ESCAPE_GOAL
+
+
+dans sendTarget(), remplacer if not escape par if not zaber_dragging
+
+
+dans goalReached(), enlever le elif size_path == 0, on n'a plus besoin de towards_rest et at_rest
+JE PENSE ENLEVER TOUTES LES REFERENCES A AT_REST ET TOWARDS_REST
+
+def setNewGoal(node, posX, posY, path):
+    '''
+        Set new goal --> establish new shortest path towards this goal
+        --> new target = first node of the shortest path
+    '''              
+
+    #print("CORRECT INPUT") 
+    #time.sleep(0.1)
+
+    #Establish new shortest path
+    path = graph.shortest_path([posX,posY],node)
+        
+    if len(path) > 0:  #New target = first node of the shortest path
+        print("path", path)
+        realTargetX, realTargetY = graph.getNodePosition(path[0])
+        #remove first node of the path since the command to go towards will be sent now
+        path.pop(0)
+
+        data = f"{ESCAPE_GOAL},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n"  
+        arduino.write(data.encode())  # Encode and send the data to the Arduino
+
+    return path
