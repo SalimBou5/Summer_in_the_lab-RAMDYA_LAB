@@ -1,4 +1,3 @@
-from uuid import getnode
 import serial
 import time
 import math
@@ -24,24 +23,25 @@ arduino = serial.Serial(port='/dev/ttyACM0',  baudrate=115200, timeout=.1)
 zaber = serial.Serial(port='/dev/ttyACM1', baudrate=115200, timeout=.1)
 
 
+
 #home the Zaber motor
 command = "/home\n" 
 zaber.write(command.encode())
-time.sleep(3)
 ZABER_START = 350000
-command="/move abs ZABER_START\n"
+command="/move abs "+str(ZABER_START)+"\n"
+time.sleep(2.5)
 zaber.write(command.encode())
+time.sleep(2.5)
 
-time.sleep(3)
+zaber_dragging = False
+
 #Position of the final goal
-targetX=0
-targetY=0
+targetNode = 4
 
 #Position of the magnet
 START_X = 0
 START_Y = 0
-posX=START_X
-posY=START_Y
+posMagnet = [START_X, START_Y]
 
 #transmitted to arduino to know whether to drag_back or to move
 escape=0
@@ -72,7 +72,7 @@ BALLS_DESTINATION = [
     
     [[71,2508,11],   [154,2508,17], [245,2508,23], [327,2508,29], [417,2508,35], [500,2508,41]], #bottom_left 17.25 + 6.4
     
-    [[1565,2508,59],[1650,2508,65],[1735,2508,71],[1820,2508,83], [1913,2508,89],[2000,2508, 95]], #bottom_middle 8.25 + 6.5
+    [[1565,2508,59],[1650,2508,65],[1735,2508,71],[1820,2508,77], [1913,2508,83],[2000,2508, 89]], #bottom_middle 8.25 + 6.5
     
     [[3057,2508,107],[3143,2508,113],[3230,2508, 119],[3315,2508, 125],[3407,2508, 131],[3492,2508, 137]] #bottom_right
 ]
@@ -108,19 +108,6 @@ def closeEnough(x,y,threshold):
     except Exception:
         print("Error in closeEnough function")
         return False 
-
-def get_position_zaber():
-   
-    # Send the command
-    zaber.write(b'get pos\n')
-    
-    # Read the response
-    response = zaber.readline().decode('utf-8')  # Assuming the response is in UTF-8 encoding
-
-    # Extract the position value after the last '--' separator
-    position = response.split('--')[-1].strip()
-
-    return position
 
 
 #---------------------COMPUTER VISION (Pattern Matching)-------------------------
@@ -170,6 +157,7 @@ THRESHOLD_DETECTION_READY = 20
 #List to store all the balls that are ready to be dragged back
 balls_ready=[]
 
+PATCH_WIDTH, PATCH_HEIGHT = patch.shape
 
 #Function to read an image and detect the balls that reached a destination
 def balls_detection(image):
@@ -185,7 +173,6 @@ def balls_detection(image):
     ax[1].set_title('Template Matched',fontsize=15)
     '''
     
-    patch_width, patch_height = patch.shape
 
     '''
     rect = plt.Rectangle((68, 1356), patch_height, patch_width, color='g', 
@@ -210,8 +197,8 @@ def balls_detection(image):
             '''
 
             '''CHECK if patch_width/2 and patch_height/2 are correct'''
-            x = x + x_min + patch_width / 2
-            y = y + y_min + patch_height / 2
+            x = x + x_min + PATCH_WIDTH / 2
+            y = y + y_min + PATCH_HEIGHT / 2
 
             if i in range(len_dest):
                 #Check if a ball reached a destination
@@ -254,25 +241,25 @@ THRESHOLD_SAME_GOAL = 0.05
     EN CHANGEANT REST_X NE PAS OUBLIER DE CHANGER LA VALEUR DES COL DANS GRAPH_MAP
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 '''
-#REST_X = [4, 10, 13, 19, 22, 28]
-
 ESCAPE_BACK = 1
 
 ESCAPE_GOAL = 0
 
-def find_nearest_point(array, XA, YA):
+def find_nearest_point(array, posMagnet):
     nearest_point = array[0]
     nearest_point_pos = graph.getNodePosition(array[0])
+    x = posMagnet[0]
+    y = posMagnet[1]
     if len(array)>1:
-        min = np.sqrt((nearest_point_pos[0] - XA) ** 2 + (nearest_point_pos[1] - YA) ** 2)
+        min = np.sqrt((nearest_point_pos[0] - x) ** 2 + (nearest_point_pos[1] - y) ** 2)
         for ar in array:
             pos = graph.getNodePosition(ar)
-            d = np.sqrt((pos[0] - XA) ** 2 + (pos[1] - YA) ** 2)
+            d = np.sqrt((pos[0] - x) ** 2 + (pos[1] - y) ** 2)
             if(min>d):
                 min = d
                 nearest_point = ar
                 nearest_point_pos = pos
-    return nearest_point, pos
+    return nearest_point, nearest_point_pos
 
 def find_nearest_X(array, XA):
     nearest_X = array[0]
@@ -286,9 +273,24 @@ def find_nearest_X(array, XA):
                 nearest_X = ar
     return nearest_X
 
+
 #******INTERPRETATION OF COMPUTER VISION****
-def computerVisionInterpretation(node,posX,posY,path):
-    towards_rest = False
+def dragBack(zaber_dragging):
+    '''
+        Trigger drag back --> push the ball
+    '''
+    # Zaber goes down
+    if not zaber_dragging:
+        command ="/1 move rel 85000\n"
+        print("ZZZZZZZZZZAAAAAAAAAAABBEEEEERRRRR         BACK")
+        zaber.write(command.encode())
+        zaber_dragging = True
+        data = f"{ESCAPE_BACK}\n"
+        arduino.write(data.encode())  # Encode and send the data
+        time.sleep(0.5)
+    return zaber_dragging
+
+def computerVisionInterpretation(posMagnet, zaber_dragging):
     if len(balls_ready) :
         '''
         If at least a ball reached its destination, then the goal of the magnet is the closest ball
@@ -296,154 +298,79 @@ def computerVisionInterpretation(node,posX,posY,path):
             *If the magnet is not at the final destination, then escape = 0 to allow the magnet to move towards the ball
         '''
         #Determine the closest ball_ready to the magnet --> Goal
-        node, [x,y] = find_nearest_point(balls_ready,posX,posY) 
-
-        #print("check dumm  ",x,"   ",y)
-        #print("check dumm  22  ",posX,"   ",posY)
+        node, [x,y] = find_nearest_point(balls_ready,posMagnet) 
 
         #If the goal node is close enough to the magnet, then trigger drag_back 
         # and remove the ball from the list balls_ready 
-        if closeEnough(x,posX,THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posY,THRESHOLD_MAGNET_ARRIVED):
-            path = []
-            escape = ESCAPE_BACK
-            balls_ready.remove([x,y])
+        if closeEnough(x,posMagnet[0],THRESHOLD_MAGNET_ARRIVED) and closeEnough(y,posMagnet[1],THRESHOLD_MAGNET_ARRIVED):
+            balls_ready.remove(node)
             print("CLOSE")
-
-        #If the magnet is far from the ball, allow it to move towards it
-        else: 
-            escape = ESCAPE_GOAL
+            zaber_dragging = dragBack(zaber_dragging)
         
     #If no ball reached a destination, go to rest --> go to the nearest X where the magnet can rest
     # --> y is set to the current posY 
     else:
-        escape = ESCAPE_GOAL
-        node = graph.find_nearest_rest(posX,posY)
-  
-        print("x = ",x,"  y = ",y)
-        towards_rest = True
+        node = graph.find_nearest_rest(posMagnet)
 
-    return node,escape,path,towards_rest
+    return node,zaber_dragging
 
-def goalReached(arrived, path, towards_rest):
+
+def goalReached(path):
     '''
         Qu'on soit clair le path retourné par graph_map ne contient pas le noeud de départ
         mais contient les noeuds qui "font les coins" + le noeud D'ARRIVEE !!!
     '''
 
-    size_path = len(path)
-    data =""
-    
-    at_rest = False
-
-    print(path)
-    
-    if(size_path >= 1):  #New target = first node of the shortest path
-        print("hahhh")
+    if(len(path) > 0):  #New target = first node of the shortest path
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         data = f"{ESCAPE_GOAL},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n" 
-        arrived = False   
         #remove first node of the path since the command to go towards it has already been sent
-        path.pop(0)
-        #print("x  y   ",realTargetX,"   ",realTargetY)
-        #print("pos  ",posX,"   ",posY)
-    elif(size_path == 0):
-        # If we were going towards rest and we reached the final destination, we are actually at rest
-        if towards_rest:
-            at_rest = True
-        #TROUVER UNE SOLUTION POUR LE CAS OU ON EST ARRIVE A DESTINATION ET QU'ON EST PAS EN REST
-            #NORMALEMENT ON DEVRAIT JAMAIS AVOIR UN PATH VIDE SANS ÊTRE EN REST
-            #SAUF SI ON A PAS BOUGE LA BALLE (COMPRENDRE POURQUOI? + TRADUIRE CA EN CONDITION + GERER CE PROBLEME)
-        print("IN REST")
+        path.pop(0)    
+        arduino.write(data.encode())  # Encode and send the data to the Arduino
 
-        '''
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            ENLEVER
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        '''
-        #BALLS_DESTINATION[4]=[[1561,1350],[1646,1350],[1731,1350],[1816,1350],[1900,1350],[1985,1350]] #middle_middle
-        '''
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            ENLEVER
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        '''
+    return path
 
-    '''
-    elif (size_path == 1): #Go directly towards the goal
-        print("gvhbhj")
-        #print("else  x  y   ",x,"   ",y)
-        #print("else  pos  ",posX,"   ",posY)
-        data = f"{ESCAPE},{convertXtoSteps(x-START_X)},{convertYtoSteps(y-START_Y)}\n" 
-        arrived = False
-        path.pop(0)
-    '''
-
-    
-    arduino.write(data.encode())  # Encode and send the data to the Arduino
-
-    return arrived,path, at_rest
-
-def setNewGoal(node, posX, posY, path, towards_rest, at_rest):
+def setNewGoal(node, posMagnet, path):
     '''
         Set new goal --> establish new shortest path towards this goal
         --> new target = first node of the shortest path
     '''              
-    #Reset arrived to false 
-    arrived = False
 
     #print("CORRECT INPUT") 
     #time.sleep(0.1)
 
     #Establish new shortest path
-    if not towards_rest:
-        path = graph.shortest_path([posX,posY],node,at_rest)
+    path = graph.shortest_path(posMagnet, node)
         
-    #Reset realTargetX and realTargetY
-    realTargetX = 0
-    realTargetY = 0
-    path_size = len(path)
-    print("path ",path)
-    if path_size >= 1:  #New target = first node of the shortest path
-        print("path", path)
+    if len(path) > 0:  #New target = first node of the shortest path
         realTargetX, realTargetY = graph.getNodePosition(path[0])
         #remove first node of the path since the command to go towards will be sent now
         path.pop(0)
 
+        data = f"{ESCAPE_GOAL},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n"  
+        arduino.write(data.encode())  # Encode and send the data to the Arduino
 
-    data = f"{ESCAPE_GOAL},{convertXtoSteps(realTargetX-START_X)},{convertYtoSteps(realTargetY-START_Y)}\n"  
-    arduino.write(data.encode())  # Encode and send the data to the Arduino
+    return path
 
-    return arrived,path
 
-def dragBack():
-    '''
-        Trigger drag back --> push the ball
-    '''
-
-    # Zaber goes down
-    if(closeEnough(get_position_zaber,ZABER_START, 1000)):
-        command ="/1 move rel 85000\n"
-        print("ZZZZZZZZZZAAAAAAAAAAABBEEEEERRRRR         BACK")
-        zaber.write(command.encode())
-        data = f"{ESCAPE_BACK}\n"
-        arduino.write(data.encode())  # Encode and send the data
-        time.sleep(0.2)
 
 #Function to send the target to the robot
-def sendTarget(node,posX,posY,arrived,path, at_rest):
+def sendTarget(node,posMagnet,arrived, path, zaber_dragging):
+    
     node_old = node
 
     #********************COMPUTER VISION INTERPRETATION*************************
     try:
-        x,y,escape,path,towards_rest=computerVisionInterpretation(node,posX,posY,path)
+        node,zaber_dragging =computerVisionInterpretation(node,posMagnet,path)
     except Exception:
         print("EXCEPTION 0")
-        return node,arrived,path, at_rest
+        return node,arrived,path, zaber_dragging
 
     #********************GOAL ANALYSIS AND MOTORS CONTROL**********************
     try : 
 
         #if allowed to move
-        if(not escape):
+        if(not zaber_dragging):
             print("***************************************")
             #''''''''''''''''''''''If the goal did not change'''''''''''''''''''''''''''''''''''''''''
             if node_old == node: 
@@ -455,46 +382,33 @@ def sendTarget(node,posX,posY,arrived,path, at_rest):
                         --> If (posMagnet == posFirstNode) *** Arrived ***
                             ---> Then the new target is the next node in the path
 
-                        --> ELse If (posMagnet == Goal)  *** Arrived --> to goal ***
-                            (This condition should never be satisfied since it is already checked above)
-                            ---> return 
-
                         --> Else *** not arrived ***
                             ---> Then don't change the target and leave the function                                            
                 '''
                 
                 if(arrived):  #---> if (posMagnet == posFirstNodeOfTheRemainingPath)
-                    arrived, path, at_rest = goalReached(arrived, path, towards_rest)
+                    path = goalReached(path)
+                    arrived = False
 
                 elif(not arrived): # Do NOTHING --> Continue towards the same goal
-                    return node_old,arrived, path,at_rest
+                    return node_old,arrived, path, zaber_dragging
                 
             #''''''''''''''''''''''''''''IF THE GOAL CHANGED'''''''''''''''''''''''''''
-            #Check whether the position is acceptable
-            elif x > X_MIN and x < X_MAX and y > Y_MIN and y < Y_MAX: 
-                arrived, path = setNewGoal(node,posX,posY,path,towards_rest, at_rest)
-                at_rest = False
-        
-            else:
-                print("WRONG INPUT2")
-                return node_old,arrived,path, at_rest
-            
-        #-----------------TRIGGER DRAG BACK--------------
-        else: 
-            dragBack()
-            path = []
+            else :
+                #Reset arrived to false 
+                arrived = False
+                path = setNewGoal(node, posMagnet, path)
             
     except ValueError:
         print("WRONG INPUT")
-        return node_old,arrived,path, at_rest
+        return node_old,arrived,path, zaber_dragging
     
-    return node,arrived,path, at_rest
+    return node,arrived,path, zaber_dragging
     
 
 i=516
 k=0
 arrived = False
-at_rest = True
 
 #shortest path towards the goal
 path=[]
@@ -517,61 +431,53 @@ folder = f"/home/matthias/Videos/MotorControlRecording"
 
 
     
-ZABER_END = 435000
 while True:
     if arduino.in_waiting:
         data = arduino.read()
-        if data == b'T':
+        if data == b'T' and zaber_dragging:
             dragging = True
             print("Received:", dragging)
         
         elif data == b'F':
-            if(closeEnough(get_position_zaber,ZABER_END, 1000)):
+            if zaber_dragging:
                 dragging = False
 
                 # Zaber goes up
                 command ="/1 move rel -85000\n"  
                 print("ZZZZZZZZZZAAAAAAAAAAABBEEEEERRRRR")
                 zaber.write(command.encode())
-
+                zaber_dragging = False
                 print("Received:", dragging)
                 time.sleep(0.2)
+        elif not zaber_dragging:        
+            if data==b'R':
+                print("RECU")
+
+            elif(data==b'A'):
+                arrived=True
+                print("RECEIVED ARRIVED    ",arrived)
+
+            elif(data ==b'X'):
+                    posX_bytes = arduino.read(4)
+
+                    #posX = stepsToX(struct.unpack('l', posX_bytes)[0])
+                    posX_temp = stepsToX(struct.unpack('<l', posX_bytes)[0])
+
+                    #Normalement ce truc est inutile mais on ne sait jamais
+                    #Je l'ai mis parce que je me suis trompé et j'envoyer l'adresse d'une variable locale
+                    if(posX_temp < 30):
+                        posMagnet[0]=posX_temp+START_X
+                
+                        #print("Received Long Values:", posX*659/4)
+                        #time.sleep(0.5)
+
+                        data=arduino.read()
+                        if(data==b'Y'):
+                            posY_bytes = arduino.read(4)
             
-        elif data==b'R':
-            print("RECU")
-
-        elif(data==b'A'):
-            arrived=True
-            print("RECEIVED ARRIVED    ",arrived)
-
-        elif(data ==b'X'):
-                posX_bytes = arduino.read(4)
-
-                #posX = stepsToX(struct.unpack('l', posX_bytes)[0])
-                posX_temp = stepsToX(struct.unpack('<l', posX_bytes)[0])
-
-                #Normalement ce truc est inutile mais on ne sait jamais
-                #Je l'ai mis parce que je me suis trompé et j'envoyer l'adresse d'une variable locale
-                if(posX_temp < 30):
-                    posX=posX_temp+START_X
-            
-                    #print("Received Long Values:", posX*659/4)
-                    #time.sleep(0.5)
-
-                    data=arduino.read()
-                    if(data==b'Y'):
-                        posY_bytes = arduino.read(4)
-        
-                        posY = stepsToY(struct.unpack('<l', posY_bytes)[0])+START_Y
-                        #print("Received YYYYYYyyy:", posY*659/4)
-                    
-                '''
-                if(arduino.in_waiting):
-                    data=arduino.read()
-                    if(data==b'A'):
-                       arrived=True
-                       print("bncjdb")
-                '''
+                            posMagnet[1] = stepsToY(struct.unpack('<l', posY_bytes)[0])+START_Y
+                            #print("Received YYYYYYyyy:", posY*659/4)
+ 
 
     #while(arduino.in_waiting):
         #arduino.read() 
@@ -588,15 +494,20 @@ while True:
                 image = max(list_files, key=os.path.getctime)
                 list_files.remove(image)
                 image = max(list_files, key=os.path.getctime)
+                
                 #image = f"magnets/image{i}.jpg"
                 #image = f"C:\\Users\\salim\\Documents\\Summer_in_the_lab-RAMDYA_LAB\\Magnets_2\\image{i}.jpg"
                 print("iiiiii    ",image)
                 balls_detection(image)
-                i=i+1
-                targetNode,arrived,path, at_rest =  sendTarget(targetNode,posX,posY,arrived,path, at_rest)
-                time.sleep(0.1)
             except:
                 print("Wrong image")
+            i=i+1
+            targetNode,arrived,path,zaber_dragging =  sendTarget(targetNode,posMagnet,arrived,path,zaber_dragging)
+            time.sleep(0.1)
+
+
+        time.sleep(0.5)  
+
             #ICI DECIDER OU ALLER
             #time.sleep(0.2)
             
