@@ -37,12 +37,11 @@ bool dragBack(){
 
   //tells python that we enter in drag mode
   long y_temp =stepperY.currentPosition();
-  stepperY.move(RAIL_LENGTH);
    Serial.write("T");
     //drag on y-axis
 
   while(stepperY.currentPosition() - y_temp > RAIL_LENGTH){
- 
+   stepperY.move(RAIL_LENGTH);
     stepperY.run();
   }
      Serial.write("T");
@@ -130,12 +129,11 @@ void loop()
       if(escape==1){ 
         delay(50);
         bool done = false;
-        while(!done){
-                  Serial.write("T");
-          done = dragBack();
+        Serial.write("T");
+        done = dragBack();
 
-        }
-                          Serial.write("e");
+        if (!done)
+          Serial.write("e");
 
         escape = 0;
         x = stepperX.currentPosition();

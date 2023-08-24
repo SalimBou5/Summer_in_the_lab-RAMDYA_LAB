@@ -21,7 +21,7 @@ from skimage.feature import match_template, peak_local_max
 arduino = serial.Serial(port='/dev/ttyACM1',  baudrate=115200, timeout=.1)
 
 #Open the serial port to communicate with the Zaber motor
-zaber = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=.1)
+zaber = serial.Serial(port='/dev/ttyACM2', baudrate=115200, timeout=.1)
 
 
 
@@ -318,8 +318,9 @@ def computerVisionInterpretation(posMagnet, zaber_dragging, wrong_input,stopped)
     # --> y is set to the current posY 
     else:
         node = graph.find_nearest_rest(posMagnet)
+        stopped = False
 
-    return node,zaber_dragging
+    return node,zaber_dragging, stopped
 
 
 
@@ -349,10 +350,10 @@ def sendTarget(real_target, final_target, posMagnet,arrived, path, zaber_draggin
     #********************COMPUTER VISION INTERPRETATION*************************
     try:
         print("/////////////////////")
-        final_target, zaber_dragging = computerVisionInterpretation(posMagnet,zaber_dragging, wrong_input,stopped)
+        final_target, zaber_dragging, stopped = computerVisionInterpretation(posMagnet,zaber_dragging, wrong_input,stopped)
     except Exception:
         print("EXCEPTION 0")
-        return real_target, final_target_old, arrived, path, zaber_dragging
+        return real_target, final_target_old, arrived, path, zaber_dragging, stopped
 
     #********************GOAL ANALYSIS AND MOTORS CONTROL**********************
     print("zaber_dragging  ",zaber_dragging)
@@ -383,7 +384,7 @@ def sendTarget(real_target, final_target, posMagnet,arrived, path, zaber_draggin
 
                 elif(not arrived): # Do NOTHING --> Continue towards the same goal
                     if(not stopped):
-                        return real_target, final_target_old,arrived, path, zaber_dragging
+                        return real_target, final_target_old,arrived, path, zaber_dragging, stopped
 
             #''''''''''''''''''''''''''''IF THE GOAL CHANGED'''''''''''''''''''''''''''
             else :
@@ -398,9 +399,9 @@ def sendTarget(real_target, final_target, posMagnet,arrived, path, zaber_draggin
             
     except ValueError:
         print("WRONG INPUT")
-        return real_target, final_target_old, arrived,path, zaber_dragging
+        return real_target, final_target_old, arrived,path, zaber_dragging, stopped
     
-    return real_target, final_target,arrived,path, zaber_dragging
+    return real_target, final_target,arrived,path, zaber_dragging, stopped
     
 
 i=516
@@ -458,7 +459,7 @@ while True:
             except:
                 print("Wrong image")
             i=i+1
-            real_target, final_target,arrived,path,zaber_dragging =  sendTarget(real_target, final_target, posMagnet, arrived, path, zaber_dragging, wrong_input,stopped,pos_remove)
+            real_target, final_target,arrived,path,zaber_dragging, stopped =  sendTarget(real_target, final_target, posMagnet, arrived, path, zaber_dragging, wrong_input,stopped,pos_remove)
             time.sleep(0.1)
 
 
@@ -492,6 +493,7 @@ while True:
                 time.sleep(0.2)
         elif data == b'e':
             print("ESCAPE")
+            stopped = True
         elif not dragging:        
             if data==b'R':
                 print("RECU")            
@@ -558,7 +560,7 @@ while True:
                         tirma = tirma+1
                         print("SAME POSITION")
                         stopped = True
-                    elif ((real_target[0] - pos_remove[0])*(posMagnet[0]-pos_remove[0]) < 0 and 
+                    elif ((real_target[0] - pos_remove[0])*(posMagnet[0]-pos_remove[0]) < 0 or 
                             (real_target[1] - pos_remove[1])*(posMagnet[1]-pos_remove[1]) < 0):
                         print("OPPOSITE DIRECTION")
                         stopped = True
