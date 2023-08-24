@@ -19,9 +19,6 @@
 
 #define RAIL_LENGTH -3667    //1.2 cm //!!!!!!!!!!!!!!!!!!! 
 
-float x = 0;
-float y = 0;
-
 
 
 // Define a stepper and the PIns it will use
@@ -29,7 +26,8 @@ float y = 0;
 AccelStepper stepperX=AccelStepper(INTERFACE_X,STEP_PIN_X,DIR_PIN_X);
 AccelStepper stepperY=AccelStepper(INTERFACE_Y,STEP_PIN_Y,DIR_PIN_Y);
 
-void dragBack(){
+long tirma=0;
+bool dragBack(){
 
   // reduce y-speed
   stepperY.setMaxSpeed(1000);
@@ -37,22 +35,26 @@ void dragBack(){
   while(Serial.available()>0)
     Serial.read();
 
-  Serial.flush();
-
   //tells python that we enter in drag mode
-  Serial.write("T");
-
-  //drag on y-axis
+  long y_temp =stepperY.currentPosition();
   stepperY.move(RAIL_LENGTH);
-  stepperY.runToPosition();
-  
+   Serial.write("T");
+    //drag on y-axis
+
+  while(stepperY.currentPosition() - y_temp > RAIL_LENGTH){
+ 
+    stepperY.run();
+  }
+     Serial.write("T");
+    //drag on y-axis
+delay(400);
   //tells python that we left drag mode
   Serial.write("F");
 
   //reset speed
   stepperY.setMaxSpeed(8000);
   stepperY.setAcceleration(4000);
-  return;
+  return true;
 }
 
 void setup()
@@ -79,6 +81,8 @@ int k = 0;
 
 bool dir = true; //true --> x ; false -->y
 bool arrived = false;
+long x = 0;
+long y = 0;
 
 void loop()
 {   
@@ -101,36 +105,53 @@ void loop()
               y = Serial.readStringUntil(DELIMITER).toFloat();      
           }
 
-          if(x==0 && y ==0){
+          /*if(x==0 && y ==0){
             x = stepperX.currentPosition();
             y = stepperY.currentPosition();
             Serial.write("W");
           }
-          else {
+          else {*/
             Serial.write("R");
             recu = true;
-          }
+          Serial.write((byte*)&x, sizeof(long));
+          //delay(500);
+          //Serial.println(currY);
+          Serial.write("y");
+          Serial.write((byte*)&y, sizeof(long));
+          Serial.write("e");
+          if(!escape) 
+            Serial.write("0");
+          else Serial.write("1");          
+        
           
         }
     } 
+  
+      if(escape==1){ 
+        delay(50);
+        bool done = false;
+        while(!done){
+                  Serial.write("T");
+          done = dragBack();
 
-    
-    if(escape==1){ 
-      dragBack();
-      escape = 0;
-      x = stepperX.currentPosition();
-      y = stepperY.currentPosition();
-    }else if(!escape){
-        stepperX.moveTo(x);
-        stepperY.moveTo(y);
-        stepperX.run();
-        if(dir and stepperX.currentPosition()== x)
-          dir = false;
-        if(!dir){
-          stepperY.run();
         }
-      }
-    }
+                          Serial.write("e");
+
+        escape = 0;
+        x = stepperX.currentPosition();
+        y = stepperY.currentPosition();
+      }else{
+          stepperX.moveTo(x);
+          stepperY.moveTo(y);
+
+          stepperX.run();
+
+          if(dir and stepperX.currentPosition()== x)
+            dir = false;
+          if(!dir){
+            stepperY.run();
+          }
+      } 
 
     if(k>10){
       long currX1 = stepperX.currentPosition();
