@@ -17,7 +17,7 @@
 
 #define DELIMITER ','
 
-#define RAIL_LENGTH -3667    //1.2 cm //!!!!!!!!!!!!!!!!!!! 
+#define RAIL_LENGTH -3517    //2.2 cm //!!!!!!!!!!!!!!!!!!! 
 
 
 
