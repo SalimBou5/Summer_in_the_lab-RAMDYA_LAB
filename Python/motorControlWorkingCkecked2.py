@@ -484,10 +484,10 @@ while True:
                         elif(data==b'\x01' or data == b'1'):
                             escape = 1
                         
-                    if((not escape and not zaber_dragging) or (escape and zaber_dragging) and closeEnough(received_x, real_target[0], 0.2) and closeEnough(received_y, real_target[1], 0.2)):
+                    if((not escape and not zaber_dragging) or (escape==1 and zaber_dragging) and closeEnough(received_x, real_target[0], 0.2) and closeEnough(received_y, real_target[1], 0.2)):
                         if(not escape):
                             print("Arduino going towards ",real_target)
-                        if(escape):
+                        if(escape==1):
                             print("Arduino acknowledges drag back")
                             dragging = True
                     else:
