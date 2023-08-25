@@ -1,0 +1,13 @@
+PUL + 3/6
+PUL - GND
+DIR + 5/9
+DIR- GND
+ENA+ LEFT 
+ENA- LEFT
+
+GND
+5V
+B-
+B+
+A-
+A+
