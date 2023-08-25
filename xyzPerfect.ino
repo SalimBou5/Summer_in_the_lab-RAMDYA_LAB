@@ -112,7 +112,9 @@ void loop()
           Serial.write("e");
           if(!escape) 
             Serial.write("0");
-          else Serial.write("1");          
+          else if (escape==1)
+              Serial.write("1"); 
+          else Serial.write("N");
                       if(x>95923)
               x = stepperX.currentPosition();
             if(y>33573)
@@ -121,7 +123,7 @@ void loop()
         }
     } 
   
-      if(escape==1){ 
+      if(escape){ 
         delay(50);
           //tells python that we enter in drag mode
         Serial.write("T");
